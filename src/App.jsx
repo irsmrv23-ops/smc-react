@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import NC from './pages/NC'
+import Documente from './pages/Documente'
 
 const menu = [
   { id: 'nc', label: 'Neconformități', icon: '⚠️' },
+  { id: 'documente', label: 'Documente SMC', icon: '📄' },
 ]
 
 function App() {
@@ -29,6 +31,7 @@ function App() {
       </aside>
       <main className="flex-1">
         {page === 'nc' && <NC />}
+        {page === 'documente' && <Documente />}
       </main>
     </div>
   )
