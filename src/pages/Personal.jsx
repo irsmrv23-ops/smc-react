@@ -4,9 +4,9 @@ import { supabase } from '../lib/supabase'
 const PERSONAL_LIST = [
   { id: 'rotari-ion', nume: 'Rotari Ion', functie: 'Șef laborator', rol: 'sef', initiale: 'RI', color: 'bg-blue-100 text-blue-700' },
   { id: 'croitoru-tatiana', nume: 'Croitoru Tatiana', functie: 'Responsabil Managementul Calității', rol: 'rmc', initiale: 'CT', color: 'bg-purple-100 text-purple-700' },
-  { id: 'jentimir-valeria', nume: 'Jentimir Valeria', functie: 'Biolog/Chimist', rol: 'biolog', initiale: 'JV', color: 'bg-teal-100 text-teal-700' },
-  { id: 'andrian-maria', nume: 'Andrian Maria', functie: 'Biolog/Chimist', rol: 'biolog', initiale: 'AM', color: 'bg-green-100 text-green-700' },
-  { id: 'antropov-marina', nume: 'Antropov Marina', functie: 'Biolog/Chimist', rol: 'biolog', initiale: 'AM2', color: 'bg-amber-100 text-amber-700' },
+  { id: 'jentimir-valeria', nume: 'Jentimir Valeria', functie: 'Biolog medical', rol: 'biolog', initiale: 'JV', color: 'bg-teal-100 text-teal-700' },
+  { id: 'andrian-maria', nume: 'Andrian Maria', functie: 'Biolog medical', rol: 'biolog', initiale: 'AM', color: 'bg-green-100 text-green-700' },
+  { id: 'antropov-marina', nume: 'Antropov Marina', functie: 'Biolog medical', rol: 'biolog', initiale: 'AM2', color: 'bg-amber-100 text-amber-700' },
 ]
 
 const DOCS_OBLIGATORII = [
