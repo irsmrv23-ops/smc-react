@@ -2,11 +2,13 @@ import { useState } from 'react'
 import NC from './pages/NC'
 import Documente from './pages/Documente'
 import Personal from './pages/Personal'
+import Calitate from './pages/Calitate'
 
 const menu = [
   { id: 'nc', label: 'Neconformități', icon: '⚠️' },
   { id: 'documente', label: 'Documente SMC', icon: '📄' },
   { id: 'personal', label: 'Personal', icon: '👤' },
+  { id: 'calitate', label: 'Calitate', icon: '🔬' },
 ]
 
 function App() {
@@ -32,6 +34,7 @@ function App() {
         {page === 'nc' && <NC />}
         {page === 'documente' && <Documente />}
         {page === 'personal' && <Personal />}
+        {page === 'calitate' && <Calitate />}
       </main>
     </div>
   )
