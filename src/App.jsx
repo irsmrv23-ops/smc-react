@@ -8,8 +8,8 @@ import Personal from './pages/Personal'
 import Calitate from './pages/Calitate'
 import Stocuri from './pages/Stocuri'
 import Registre from './pages/Registre'
+import Catalog from './pages/Catalog'
 
-// Meniu per rol
 const MENU_ADMIN = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
   { id: 'nc', label: 'Neconformități', icon: '⚠️' },
@@ -18,6 +18,7 @@ const MENU_ADMIN = [
   { id: 'calitate', label: 'Calitate', icon: '🔬' },
   { id: 'stocuri', label: 'Stocuri & Metrologie', icon: '📦' },
   { id: 'registre', label: 'Registre electronice', icon: '📋' },
+  { id: 'catalog', label: 'Catalog servicii', icon: '📑' },
 ]
 const MENU_RMC = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
@@ -26,6 +27,7 @@ const MENU_RMC = [
   { id: 'personal', label: 'Personal', icon: '👤' },
   { id: 'calitate', label: 'Calitate', icon: '🔬' },
   { id: 'registre', label: 'Registre electronice', icon: '📋' },
+  { id: 'catalog', label: 'Catalog servicii', icon: '📑' },
 ]
 const MENU_BIOLOG = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
@@ -49,7 +51,6 @@ export default function App() {
   const [moldacData, setMoldacData] = useState(localStorage.getItem('moldac_data') || '2025-05-01')
 
   useEffect(() => {
-    // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const { data: roleData } = await supabase.from('user_roles').select('*').eq('email', session.user.email).single()
@@ -62,8 +63,6 @@ export default function App() {
       }
       setLoading(false)
     })
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setSession(null)
@@ -107,13 +106,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
       <aside className="w-56 bg-white border-r border-gray-200 min-h-screen flex-shrink-0 flex flex-col">
         <div className="p-4 border-b">
           <div className="font-bold text-blue-700 text-sm">SMC Digital</div>
           <div className="text-xs text-gray-400">Invitro Diagnostics SRL</div>
         </div>
-
         <nav className="p-2 flex-1">
           {menu.map(m => (
             <button key={m.id} onClick={() => setPage(m.id)}
@@ -123,8 +120,6 @@ export default function App() {
             </button>
           ))}
         </nav>
-
-        {/* User info + logout */}
         <div style={{ padding: '12px', borderTop: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1d4ed8', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
@@ -144,7 +139,6 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto">
         {page === 'dashboard' && <Dashboard onNavigate={setPage} moldacData={moldacData} onMoldacChange={handleMoldacChange} userRol={userRol} />}
         {page === 'nc' && <NC userRol={userRol} />}
@@ -153,6 +147,7 @@ export default function App() {
         {page === 'calitate' && <Calitate userRol={userRol} />}
         {page === 'stocuri' && <Stocuri userRol={userRol} />}
         {page === 'registre' && <Registre userRol={userRol} />}
+        {page === 'catalog' && <Catalog userRol={userRol} />}
       </main>
     </div>
   )
