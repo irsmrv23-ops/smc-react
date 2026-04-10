@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Dashboard from './pages/Dashboard'
 import NC from './pages/NC'
 import Documente from './pages/Documente'
 import Personal from './pages/Personal'
@@ -7,6 +8,7 @@ import Stocuri from './pages/Stocuri'
 import Registre from './pages/Registre'
 
 const menu = [
+  { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
   { id: 'nc', label: 'Neconformități', icon: '⚠️' },
   { id: 'documente', label: 'Documente SMC', icon: '📄' },
   { id: 'personal', label: 'Personal', icon: '👤' },
@@ -15,14 +17,23 @@ const menu = [
   { id: 'registre', label: 'Registre electronice', icon: '📋' },
 ]
 
-function App() {
-  const [page, setPage] = useState('nc')
+export default function App() {
+  const [page, setPage] = useState('dashboard')
+  const [moldacData, setMoldacData] = useState(
+    localStorage.getItem('moldac_data') || '2025-05-01'
+  )
+
+  function handleMoldacChange(val) {
+    setMoldacData(val)
+    localStorage.setItem('moldac_data', val)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-56 bg-white border-r border-gray-200 min-h-screen">
+      <aside className="w-56 bg-white border-r border-gray-200 min-h-screen flex-shrink-0">
         <div className="p-4 border-b">
           <div className="font-bold text-blue-700 text-sm">SMC Digital</div>
-          <div className="text-xs text-gray-400">Invitro Diagnostics</div>
+          <div className="text-xs text-gray-400">Invitro Diagnostics SRL</div>
         </div>
         <nav className="p-2">
           {menu.map(m => (
@@ -34,7 +45,8 @@ function App() {
           ))}
         </nav>
       </aside>
-      <main className="flex-1">
+      <main className="flex-1 overflow-auto">
+        {page === 'dashboard' && <Dashboard onNavigate={setPage} moldacData={moldacData} onMoldacChange={handleMoldacChange} />}
         {page === 'nc' && <NC />}
         {page === 'documente' && <Documente />}
         {page === 'personal' && <Personal />}
@@ -45,5 +57,3 @@ function App() {
     </div>
   )
 }
-
-export default App
