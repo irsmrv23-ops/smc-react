@@ -3,12 +3,14 @@ import NC from './pages/NC'
 import Documente from './pages/Documente'
 import Personal from './pages/Personal'
 import Calitate from './pages/Calitate'
+import Stocuri from './pages/Stocuri'
 
 const menu = [
   { id: 'nc', label: 'Neconformități', icon: '⚠️' },
   { id: 'documente', label: 'Documente SMC', icon: '📄' },
   { id: 'personal', label: 'Personal', icon: '👤' },
   { id: 'calitate', label: 'Calitate', icon: '🔬' },
+  { id: 'stocuri', label: 'Stocuri & Metrologie', icon: '📦' },
 ]
 
 function App() {
@@ -35,6 +37,7 @@ function App() {
         {page === 'documente' && <Documente />}
         {page === 'personal' && <Personal />}
         {page === 'calitate' && <Calitate />}
+        {page === 'stocuri' && <Stocuri />}
       </main>
     </div>
   )
