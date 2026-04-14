@@ -81,13 +81,20 @@ export default function Documente() {
     if (!file) return
     setUploadingId(docId)
     try {
-      const path = `docs/${docId}/${file.name}`
-      const { error } = await supabase.storage.from('documente').upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data } = supabase.storage.from('documente').getPublicUrl(path)
-      await supabase.from('docs').update({ fisier: data.publicUrl }).eq('id', docId)
-      setDocs(prev => prev.map(d => d.id === docId ? { ...d, fisier: data.publicUrl } : d))
-    } catch(e) { alert('Eroare upload: ' + e.message) }
+      const ext = file.name.split('.').pop().toLowerCase()
+      const path = `docs/${docId}/${docId}.${ext}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documente')
+        .upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (uploadError) {
+        alert('Eroare upload: ' + uploadError.message + '\n' + JSON.stringify(uploadError))
+        setUploadingId(null)
+        return
+      }
+      const { data: urlData } = supabase.storage.from('documente').getPublicUrl(path)
+      await supabase.from('docs').update({ fisier: urlData.publicUrl }).eq('id', docId)
+      setDocs(prev => prev.map(d => d.id === docId ? { ...d, fisier: urlData.publicUrl } : d))
+    } catch(e) { alert('Eroare: ' + e.message) }
     setUploadingId(null)
   }
 
