@@ -2,30 +2,52 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const TIPURI_KIT = ['amplificare', 'extractie', 'control', 'reactiv', 'consumabil', 'altul']
+const TIPURI_KIT_COLORS = {
+  amplificare: { color: '#1a56db', bg: '#eff6ff', icon: '🧬' },
+  extractie:   { color: '#7c3aed', bg: '#f5f3ff', icon: '🧪' },
+  control:     { color: '#16a34a', bg: '#f0fdf4', icon: '✅' },
+  reactiv:     { color: '#d97706', bg: '#fffbeb', icon: '⚗️' },
+  consumabil:  { color: '#64748b', bg: '#f8fafc', icon: '📦' },
+  altul:       { color: '#475569', bg: '#f1f5f9', icon: '🔧' },
+}
+
 const ECHIPAMENTE_LIST = [
-  { id: 'DTprime-A5I842', den: 'DTprime 5M1 (A5I842)', tip: 'termocicler' },
-  { id: 'DTprime-A5JN90', den: 'DTprime 5M1 (A5JN90)', tip: 'termocicler' },
-  { id: 'DTprime-A5J776', den: 'DTprime 5M1 (A5J776)', tip: 'termocicler' },
-  { id: 'DTprime2-R5N637', den: 'DTprime II 5M1 (R5N637)', tip: 'termocicler' },
-  { id: 'RotorGene-R1016141', den: 'Rotor-Gene Q6 (R1016141)', tip: 'termocicler' },
-  { id: 'QuantStudio-272526064', den: 'QuantStudio 5 (272526064)', tip: 'termocicler' },
-  { id: 'GeneXpert-110009739', den: 'GeneXpert XVI (110009739)', tip: 'termocicler' },
-  { id: 'SeqStudio', den: 'SeqStudio Genetic Analyzer', tip: 'secventiator' },
-  { id: 'IonGeneStudio', den: 'Ion GeneStudio S5', tip: 'secventiator' },
-  { id: 'Centrifuga1', den: 'Centrifugă (lab 1)', tip: 'centrifuga' },
-  { id: 'Centrifuga2', den: 'Centrifugă (lab 2)', tip: 'centrifuga' },
-  { id: 'HotaLaminar1', den: 'Hotă flux laminar (Sala 1)', tip: 'hota' },
-  { id: 'HotaLaminar2', den: 'Hotă flux laminar (Sala 2)', tip: 'hota' },
-  { id: 'Frigider1', den: 'Frigider reactivi (2-8°C)', tip: 'frigider' },
-  { id: 'Congelator1', den: 'Congelator probe (-20°C)', tip: 'congelator' },
-  { id: 'Congelator2', den: 'Congelator probe (-80°C)', tip: 'congelator' },
-  { id: 'Balance1', den: 'Balanță analitică', tip: 'balanta' },
-  { id: 'Pipeta1', den: 'Pipete multicanal (set)', tip: 'pipeta' },
-  { id: 'Vortex1', den: 'Vortex mixer', tip: 'vortex' },
-  { id: 'Termobloc1', den: 'Termobloc', tip: 'termobloc' },
+  { id: 'DTprime-A5I842',   den: 'DTprime 5M1 (A5I842)',       tip: 'Termocicler' },
+  { id: 'DTprime-A5JN90',   den: 'DTprime 5M1 (A5JN90)',       tip: 'Termocicler' },
+  { id: 'DTprime-A5J776',   den: 'DTprime 5M1 (A5J776)',       tip: 'Termocicler' },
+  { id: 'DTprime2-R5N637',  den: 'DTprime II 5M1 (R5N637)',    tip: 'Termocicler' },
+  { id: 'RotorGene',        den: 'Rotor-Gene Q6',               tip: 'Termocicler' },
+  { id: 'QuantStudio',      den: 'QuantStudio 5',               tip: 'Termocicler' },
+  { id: 'GeneXpert',        den: 'GeneXpert XVI',               tip: 'Termocicler' },
+  { id: 'SeqStudio',        den: 'SeqStudio Genetic Analyzer',  tip: 'Secvențiator' },
+  { id: 'IonGeneStudio',    den: 'Ion GeneStudio S5',           tip: 'Secvențiator' },
+  { id: 'Centrifuga1',      den: 'Centrifugă (lab 1)',          tip: 'Centrifugă' },
+  { id: 'Centrifuga2',      den: 'Centrifugă (lab 2)',          tip: 'Centrifugă' },
+  { id: 'HotaLaminar1',     den: 'Hotă flux laminar (Sala 1)', tip: 'Hotă' },
+  { id: 'HotaLaminar2',     den: 'Hotă flux laminar (Sala 2)', tip: 'Hotă' },
+  { id: 'Frigider1',        den: 'Frigider reactivi (2–8°C)',   tip: 'Frigider' },
+  { id: 'Congelator1',      den: 'Congelator probe (–20°C)',    tip: 'Congelator' },
+  { id: 'Congelator2',      den: 'Congelator probe (–80°C)',    tip: 'Congelator' },
+  { id: 'Balance1',         den: 'Balanță analitică',           tip: 'Balanță' },
+  { id: 'Pipeta1',          den: 'Pipete multicanal (set)',     tip: 'Pipetă' },
+  { id: 'Vortex1',          den: 'Vortex mixer',                tip: 'Agitator' },
+  { id: 'Termobloc1',       den: 'Termobloc',                   tip: 'Termobloc' },
 ]
 
 const TIPURI_METRO = ['etalonare', 'verificare', 'mentenanta', 'reparatie', 'calificare']
+const METRO_COLORS = {
+  etalonare:   { color: '#1a56db', bg: '#eff6ff', icon: '📐' },
+  verificare:  { color: '#7c3aed', bg: '#f5f3ff', icon: '🔍' },
+  mentenanta:  { color: '#d97706', bg: '#fffbeb', icon: '🔧' },
+  reparatie:   { color: '#dc2626', bg: '#fef2f2', icon: '🛠️' },
+  calificare:  { color: '#16a34a', bg: '#f0fdf4', icon: '✅' },
+}
+
+const TIP_ECH_ICONS = {
+  'Termocicler': '🔬', 'Secvențiator': '🧬', 'Centrifugă': '⚙️',
+  'Hotă': '🌬️', 'Frigider': '❄️', 'Congelator': '🧊',
+  'Balanță': '⚖️', 'Pipetă': '💉', 'Agitator': '🔄', 'Termobloc': '🌡️',
+}
 
 function todayStr() { return new Date().toISOString().slice(0, 10) }
 function daysUntil(d) { if (!d) return 9999; return Math.ceil((new Date(d) - new Date()) / 86400000) }
@@ -38,17 +60,14 @@ export default function Stocuri() {
   const [metro, setMetro] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-
-  // Stoc forms
   const [showAddKit, setShowAddKit] = useState(false)
   const [showMiscare, setShowMiscare] = useState(null)
+  const [showAddMetro, setShowAddMetro] = useState(false)
+  const [metroEch, setMetroEch] = useState(null)
+  const [filtruTip, setFiltruTip] = useState('')
   const [kitForm, setKitForm] = useState({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, obs: '' })
   const [miscareForm, setMiscareForm] = useState({ tip: 'intrare', cant: 1, motiv: '', data: todayStr() })
-
-  // Metro forms
-  const [showAddMetro, setShowAddMetro] = useState(false)
   const [metroForm, setMetroForm] = useState({ echipament: ECHIPAMENTE_LIST[0].den, tip: 'etalonare', data_ef: todayStr(), data_sc: '', exec_tip: 'extern', exec_firma: '', cert: '', cost: '', obs: '' })
-  const [metroEch, setMetroEch] = useState(null)
 
   useEffect(() => { loadAll() }, [])
 
@@ -65,22 +84,21 @@ export default function Stocuri() {
     setLoading(false)
   }
 
-  // ── STOCURI ────────────────────────────────────────────────
   async function saveKit() {
     if (!kitForm.cod || !kitForm.den) { alert('Cod și denumire obligatorii!'); return }
     setSaving(true)
-    const rec = { id: 'KIT-' + Date.now(), ...kitForm, cantitate: parseFloat(kitForm.cantitate) || 0, teste_per_kit: parseInt(kitForm.teste_per_kit) || 96, stoc_min: parseFloat(kitForm.stoc_min) || 1, ts: new Date().toISOString() }
+    const rec = { id: 'KIT-' + Date.now(), ...kitForm, cantitate: parseFloat(kitForm.cantitate)||0, teste_per_kit: parseInt(kitForm.teste_per_kit)||96, stoc_min: parseFloat(kitForm.stoc_min)||1, ts: new Date().toISOString() }
     const { error } = await supabase.from('stoc_data').insert(rec)
-    if (error) { alert('Eroare: ' + error.message) }
-    else { setStoc(prev => [...prev, rec]); setShowAddKit(false); setKitForm({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, obs: '' }) }
+    if (!error) { setStoc(prev => [...prev, rec]); setShowAddKit(false); setKitForm({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, obs: '' }) }
+    else alert('Eroare: ' + error.message)
     setSaving(false)
   }
 
   async function saveMiscare() {
-    if (!miscareForm.cant || parseFloat(miscareForm.cant) <= 0) { alert('Introduceți cantitatea!'); return }
+    const cant = parseFloat(miscareForm.cant)
+    if (!cant || cant <= 0) { alert('Introduceți cantitatea!'); return }
     setSaving(true)
     const kit = showMiscare
-    const cant = parseFloat(miscareForm.cant)
     const newCant = miscareForm.tip === 'intrare' ? kit.cantitate + cant : Math.max(0, kit.cantitate - cant)
     const misRec = { id: 'MIS-' + Date.now(), kit_id: kit.id, kit_den: kit.den, kit_cod: kit.cod, tip: miscareForm.tip, cant, data: miscareForm.data, motiv: miscareForm.motiv, stoc_dupa: newCant, ts: new Date().toISOString() }
     const { error } = await supabase.from('miscari').insert(misRec)
@@ -89,7 +107,7 @@ export default function Stocuri() {
       setStoc(prev => prev.map(s => s.id === kit.id ? { ...s, cantitate: newCant } : s))
       setMiscari(prev => [misRec, ...prev])
       setShowMiscare(null)
-      if (newCant <= kit.stoc_min) alert('⚠ Stoc minim atins pentru ' + kit.den + '!')
+      if (newCant <= kit.stoc_min) alert(`⚠ Stoc minim atins pentru ${kit.den}!`)
     }
     setSaving(false)
   }
@@ -100,14 +118,12 @@ export default function Stocuri() {
     setStoc(prev => prev.filter(s => s.id !== id))
   }
 
-  // ── METROLOGIE ─────────────────────────────────────────────
   async function saveMetro() {
-    if (!metroForm.echipament || !metroForm.data_ef) { alert('Echipament și data sunt obligatorii!'); return }
+    if (!metroForm.echipament || !metroForm.data_ef) { alert('Echipament și data obligatorii!'); return }
     setSaving(true)
     const rec = { id: 'MTR-' + Date.now(), ...metroForm, cost: metroForm.cost ? parseFloat(metroForm.cost) : null, ts: new Date().toISOString() }
     const { error } = await supabase.from('metro_data').insert(rec)
-    if (error) { alert('Eroare: ' + error.message) }
-    else { setMetro(prev => [...prev, rec].sort((a, b) => (a.data_sc || '').localeCompare(b.data_sc || ''))); setShowAddMetro(false) }
+    if (!error) { setMetro(prev => [...prev, rec].sort((a, b) => (a.data_sc||'').localeCompare(b.data_sc||''))); setShowAddMetro(false) }
     setSaving(false)
   }
 
@@ -115,359 +131,326 @@ export default function Stocuri() {
     if (!file) return
     const path = `metro/${metroId}/${file.name}`
     const { error } = await supabase.storage.from('documente').upload(path, file, { upsert: true })
-    if (error) { alert('Eroare upload: ' + error.message); return }
+    if (error) { alert('Eroare: ' + error.message); return }
     const { data } = supabase.storage.from('documente').getPublicUrl(path)
     await supabase.from('metro_data').update({ cert_url: data.publicUrl }).eq('id', metroId)
     setMetro(prev => prev.map(m => m.id === metroId ? { ...m, cert_url: data.publicUrl } : m))
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400">Se încarcă...</div>
+  if (loading) return <div style={{padding:40,textAlign:'center',color:'#94a3b8'}}>Se încarcă...</div>
 
   const expirateKituri = stoc.filter(s => s.expirare && s.expirare < todayStr())
   const stocMinim = stoc.filter(s => s.cantitate <= s.stoc_min)
   const metroExpirate = metro.filter(m => m.data_sc && daysUntil(m.data_sc) < 0)
   const metroCurand = metro.filter(m => m.data_sc && daysUntil(m.data_sc) >= 0 && daysUntil(m.data_sc) <= 30)
-
+  const filteredStoc = stoc.filter(s => !filtruTip || s.tip === filtruTip)
   const echMetro = metroEch ? metro.filter(m => m.echipament === metroEch) : metro
 
   return (
-    <div className="p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Stocuri & Metrologie</h1>
-        <p className="text-sm text-gray-500">Kituri · Reactivi · Echipamente · Etalonare</p>
-      </div>
-
-      {/* Alerte */}
-      {(expirateKituri.length > 0 || stocMinim.length > 0 || metroExpirate.length > 0 || metroCurand.length > 0) && (
-        <div className="space-y-2 mb-6">
-          {expirateKituri.map(k => (
-            <div key={k.id} className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700">
-              ⚠ Kit expirat: <strong>{k.den}</strong> — expirat la {fmtDate(k.expirare)}
-            </div>
-          ))}
-          {stocMinim.map(k => (
-            <div key={k.id} className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-700">
-              📦 Stoc minim: <strong>{k.den}</strong> — {k.cantitate} kituri rămase (minim: {k.stoc_min})
-            </div>
-          ))}
-          {metroExpirate.map(m => (
-            <div key={m.id} className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700">
-              🔧 Metrologie expirată: <strong>{m.echipament?.split('(')[0]?.trim()}</strong> — scadentă la {fmtDate(m.data_sc)}
-            </div>
-          ))}
-          {metroCurand.map(m => (
-            <div key={m.id} className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-700">
-              🔧 Metrologie scadentă în {daysUntil(m.data_sc)} zile: <strong>{m.echipament?.split('(')[0]?.trim()}</strong>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {[
-          { id: 'stocuri', label: 'Stocuri', icon: '📦' },
-          { id: 'miscari', label: 'Mișcări', icon: '📋' },
-          { id: 'metrologie', label: 'Metrologie', icon: '🔧' },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2
-              ${tab === t.id ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-            <span>{t.icon}</span><span>{t.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* ═══ STOCURI ══════════════════════════════════════════ */}
-      {tab === 'stocuri' && (
+    <div>
+      {/* PAGE HEADER */}
+      <div className="page-header">
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <div className="grid grid-cols-3 gap-4 flex-1 mr-4">
-              <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-blue-600">{stoc.length}</div>
-                <div className="text-xs text-gray-400">Total kituri</div>
-              </div>
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-red-600">{expirateKituri.length}</div>
-                <div className="text-xs text-red-400">Expirate</div>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-amber-600">{stocMinim.length}</div>
-                <div className="text-xs text-amber-400">Stoc minim</div>
-              </div>
-            </div>
-            <button onClick={() => setShowAddKit(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
-              + Kit nou
+          <div className="page-title">Stocuri & Metrologie</div>
+          <div className="page-subtitle">Kituri · Reactivi · Echipamente · Etalonare</div>
+        </div>
+      </div>
+
+      <div style={{padding:'24px 32px'}}>
+
+        {/* ALERTE */}
+        {(expirateKituri.length > 0 || stocMinim.length > 0 || metroExpirate.length > 0 || metroCurand.length > 0) && (
+          <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:24}}>
+            {expirateKituri.map(k => (
+              <div key={k.id} className="alert alert-danger">⚠ Kit expirat: <strong>{k.den}</strong> — expirat la {fmtDate(k.expirare)}</div>
+            ))}
+            {stocMinim.filter(k => k.expirare >= todayStr() || !k.expirare).map(k => (
+              <div key={k.id} className="alert alert-warning">📦 Stoc minim: <strong>{k.den}</strong> — {k.cantitate} kituri (minim: {k.stoc_min})</div>
+            ))}
+            {metroExpirate.map(m => (
+              <div key={m.id} className="alert alert-danger">🔧 Metrologie expirată: <strong>{m.echipament?.split('(')[0]?.trim()}</strong> — scadentă la {fmtDate(m.data_sc)}</div>
+            ))}
+            {metroCurand.map(m => (
+              <div key={m.id} className="alert alert-warning">🔧 Metrologie scadentă în {daysUntil(m.data_sc)} zile: <strong>{m.echipament?.split('(')[0]?.trim()}</strong></div>
+            ))}
+          </div>
+        )}
+
+        {/* TABS GRANDIOASE */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:32}}>
+          {[
+            { id: 'stocuri',    icon: '📦', label: 'Stocuri',    desc: `${stoc.length} kituri · ${expirateKituri.length} expirate`,       alert: expirateKituri.length + stocMinim.length },
+            { id: 'miscari',    icon: '📋', label: 'Mișcări',    desc: `${miscari.length} înregistrări recente`,                           alert: 0 },
+            { id: 'metrologie', icon: '🔧', label: 'Metrologie', desc: `${metro.length} echipamente · ${metroExpirate.length} expirate`,    alert: metroExpirate.length + metroCurand.length },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{
+                background: tab === t.id ? '#1a56db' : 'white',
+                border: `2px solid ${tab === t.id ? '#1a56db' : t.alert > 0 ? '#fde68a' : '#e2e8f0'}`,
+                borderRadius: 16, padding: '20px 20px', cursor: 'pointer', textAlign: 'left',
+                transition: 'all 0.2s', position: 'relative',
+                boxShadow: tab === t.id ? '0 8px 24px rgba(26,86,219,0.3)' : t.alert > 0 ? '0 2px 8px rgba(217,119,6,0.15)' : '0 1px 3px rgba(0,0,0,0.06)',
+                transform: tab === t.id ? 'translateY(-3px)' : 'none',
+              }}>
+              {t.alert > 0 && tab !== t.id && (
+                <div style={{position:'absolute',top:12,right:12,background:'#dc2626',color:'white',width:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{t.alert}</div>
+              )}
+              <div style={{fontSize:32,marginBottom:10}}>{t.icon}</div>
+              <div style={{fontSize:16,fontWeight:700,color:tab===t.id?'white':'#1e293b',marginBottom:4}}>{t.label}</div>
+              <div style={{fontSize:12,color:tab===t.id?'rgba(255,255,255,0.75)':'#94a3b8'}}>{t.desc}</div>
             </button>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200">
-            {stoc.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">Niciun kit în stoc</div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Cod</th>
-                    <th className="px-4 py-3 text-left">Denumire</th>
-                    <th className="px-4 py-3 text-left">Tip</th>
-                    <th className="px-4 py-3 text-left">Lot</th>
-                    <th className="px-4 py-3 text-left">Expiră</th>
-                    <th className="px-4 py-3 text-left">Stoc</th>
-                    <th className="px-4 py-3 text-left">Status</th>
-                    <th className="px-4 py-3 text-left">Acțiuni</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {stoc.map(s => {
-                    const expirat = s.expirare && s.expirare < todayStr()
-                    const minim = s.cantitate <= s.stoc_min
-                    return (
-                      <tr key={s.id} className={`hover:bg-gray-50 ${expirat ? 'bg-red-50' : minim ? 'bg-amber-50' : ''}`}>
-                        <td className="px-4 py-3 font-mono text-xs font-bold text-blue-700">{s.cod}</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">{s.den}</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{s.tip}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500 font-mono">{s.lot || '—'}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={expirat ? 'text-red-600 font-medium' : 'text-gray-500'}>
-                            {fmtDate(s.expirare)} {expirat ? '⚠' : ''}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`text-sm font-bold ${minim ? 'text-red-600' : 'text-gray-700'}`}>
-                            {s.cantitate}
-                          </span>
-                          <span className="text-xs text-gray-400 ml-1">/{s.stoc_min} min</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium
-                            ${expirat ? 'bg-red-100 text-red-700' : minim ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                            {expirat ? 'Expirat' : minim ? 'Stoc minim' : 'OK'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            <button onClick={() => { setShowMiscare(s); setMiscareForm({ tip: 'intrare', cant: 1, motiv: '', data: todayStr() }) }}
-                              className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">
-                              ± Mișcare
-                            </button>
-                            <button onClick={() => deleteKit(s.id)}
-                              className="text-gray-300 hover:text-red-500">🗑️</button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
+          ))}
         </div>
-      )}
 
-      {/* ═══ MIȘCĂRI ══════════════════════════════════════════ */}
-      {tab === 'miscari' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          {miscari.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">Nicio mișcare înregistrată</div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                  <th className="px-4 py-3 text-left">Data</th>
-                  <th className="px-4 py-3 text-left">Kit</th>
-                  <th className="px-4 py-3 text-left">Tip</th>
-                  <th className="px-4 py-3 text-left">Cantitate</th>
-                  <th className="px-4 py-3 text-left">Stoc după</th>
-                  <th className="px-4 py-3 text-left">Motiv</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {miscari.map(m => (
-                  <tr key={m.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm">{m.data}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{m.kit_den}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${m.tip === 'intrare' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {m.tip === 'intrare' ? '↑ Intrare' : '↓ Ieșire'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold">{m.cant}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{m.stoc_dupa}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{m.motiv || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {/* ═══ METROLOGIE ═══════════════════════════════════════ */}
-      {tab === 'metrologie' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2 flex-wrap flex-1 mr-4">
-              <button onClick={() => setMetroEch(null)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${!metroEch ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-200 text-gray-600'}`}>
-                Toate
-              </button>
-              {[...new Set(metro.map(m => m.echipament))].map(e => (
-                <button key={e} onClick={() => setMetroEch(metroEch === e ? null : e)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${metroEch === e ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-200 text-gray-600 hover:border-blue-300'}`}>
-                  {e?.split('(')[0]?.trim()}
-                </button>
+        {/* ═══ STOCURI ══════════════════════════════════════════ */}
+        {tab === 'stocuri' && (
+          <div>
+            {/* Stats */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:24}}>
+              {[
+                { label: 'Total kituri', val: stoc.length, color: '#1a56db', bg: '#eff6ff', icon: '📦' },
+                { label: 'Expirate', val: expirateKituri.length, color: '#dc2626', bg: '#fef2f2', icon: '⚠️' },
+                { label: 'Stoc minim', val: stocMinim.length, color: '#d97706', bg: '#fffbeb', icon: '📉' },
+                { label: 'OK', val: stoc.length - expirateKituri.length - stocMinim.length, color: '#16a34a', bg: '#f0fdf4', icon: '✅' },
+              ].map((s, i) => (
+                <div key={i} style={{background:'white',border:'1px solid #e2e8f0',borderRadius:14,padding:20,display:'flex',alignItems:'center',gap:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                  <div style={{width:44,height:44,borderRadius:12,background:s.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{s.icon}</div>
+                  <div><div style={{fontSize:28,fontWeight:800,color:s.color}}>{s.val}</div><div style={{fontSize:12,color:'#94a3b8',fontWeight:600}}>{s.label}</div></div>
+                </div>
               ))}
             </div>
-            <button onClick={() => setShowAddMetro(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
-              + Înregistrare
-            </button>
-          </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">{metro.length}</div>
-              <div className="text-xs text-gray-400">Total înregistrări</div>
+            {/* Filtre tip */}
+            <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+              <button onClick={()=>setFiltruTip('')} style={{padding:'6px 14px',borderRadius:8,border:`2px solid ${!filtruTip?'#1a56db':'#e2e8f0'}`,background:!filtruTip?'#1a56db':'white',color:!filtruTip?'white':'#64748b',fontSize:12,fontWeight:600,cursor:'pointer'}}>Toate</button>
+              {TIPURI_KIT.map(t=>{const tc=TIPURI_KIT_COLORS[t];return(
+                <button key={t} onClick={()=>setFiltruTip(t===filtruTip?'':t)} style={{padding:'6px 14px',borderRadius:8,border:`2px solid ${filtruTip===t?tc.color:'#e2e8f0'}`,background:filtruTip===t?tc.bg:'white',color:filtruTip===t?tc.color:'#64748b',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.15s'}}>
+                  {tc.icon} {t}
+                </button>
+              )})}
+              <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={()=>setShowAddKit(true)}>+ Kit nou</button>
             </div>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-red-600">{metroExpirate.length}</div>
-              <div className="text-xs text-red-400">Expirate</div>
-            </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-amber-600">{metroCurand.length}</div>
-              <div className="text-xs text-amber-400">Scadente în 30 zile</div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-gray-200">
-            {echMetro.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">Nicio înregistrare metrologie</div>
+            {/* Grid kituri */}
+            {filteredStoc.length === 0 ? (
+              <div style={{background:'white',borderRadius:16,border:'1px solid #e2e8f0',padding:60,textAlign:'center',color:'#94a3b8'}}>
+                <div style={{fontSize:48,marginBottom:12}}>📦</div>
+                <div style={{fontSize:15,fontWeight:600}}>Niciun kit în stoc</div>
+              </div>
             ) : (
-              <table className="w-full">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Echipament</th>
-                    <th className="px-4 py-3 text-left">Tip</th>
-                    <th className="px-4 py-3 text-left">Data efectuare</th>
-                    <th className="px-4 py-3 text-left">Scadență</th>
-                    <th className="px-4 py-3 text-left">Executant</th>
-                    <th className="px-4 py-3 text-left">Certificat</th>
-                    <th className="px-4 py-3 text-left">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {echMetro.map(m => {
-                    const days = daysUntil(m.data_sc)
-                    const expirat = days < 0
-                    const curand = days >= 0 && days <= 30
-                    return (
-                      <tr key={m.id} className={`hover:bg-gray-50 ${expirat ? 'bg-red-50' : curand ? 'bg-amber-50' : ''}`}>
-                        <td className="px-4 py-3 text-sm font-medium">{m.echipament?.split('(')[0]?.trim()}</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs capitalize">{m.tip}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{fmtDate(m.data_ef)}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={expirat ? 'text-red-600 font-medium' : curand ? 'text-amber-600 font-medium' : 'text-gray-600'}>
-                            {fmtDate(m.data_sc)} {expirat ? `(${Math.abs(days)}z)` : curand ? `(${days}z)` : ''}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{m.exec_firma || m.exec_tip}</td>
-                        <td className="px-4 py-3">
-                          {m.cert_url ? (
-                            <a href={m.cert_url} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">📄 Vezi</a>
-                          ) : (
-                            <label className="cursor-pointer text-gray-400 hover:text-blue-600 text-sm">
-                              📎 Upload
-                              <input type="file" accept=".pdf" className="hidden"
-                                onChange={e => uploadMetroCert(m.id, e.target.files[0])} />
-                            </label>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${expirat ? 'bg-red-100 text-red-700' : curand ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                            {expirat ? '✗ Expirat' : curand ? '⏰ Curand' : '✓ Valabil'}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
+                {filteredStoc.map(s => {
+                  const expirat = s.expirare && s.expirare < todayStr()
+                  const minim = s.cantitate <= s.stoc_min
+                  const tc = TIPURI_KIT_COLORS[s.tip] || TIPURI_KIT_COLORS.altul
+                  const pct = Math.min(100, Math.round(s.cantitate / (s.stoc_min * 3) * 100))
+                  return (
+                    <div key={s.id} style={{background:'white',borderRadius:16,border:`2px solid ${expirat?'#fecaca':minim?'#fde68a':'#e2e8f0'}`,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',transition:'all 0.2s'}}
+                      onMouseOver={e=>e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'}
+                      onMouseOut={e=>e.currentTarget.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:40,height:40,borderRadius:10,background:tc.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>{tc.icon}</div>
+                          <div>
+                            <div style={{fontFamily:'monospace',fontWeight:700,fontSize:13,color:tc.color}}>{s.cod}</div>
+                            <div style={{fontSize:10,color:'#94a3b8',fontWeight:600,textTransform:'capitalize'}}>{s.tip}</div>
+                          </div>
+                        </div>
+                        <div>
+                          {expirat && <span style={{background:'#fef2f2',color:'#991b1b',border:'1px solid #fecaca',padding:'3px 8px',borderRadius:8,fontSize:10,fontWeight:700}}>⚠ EXPIRAT</span>}
+                          {!expirat && minim && <span style={{background:'#fffbeb',color:'#92400e',border:'1px solid #fde68a',padding:'3px 8px',borderRadius:8,fontSize:10,fontWeight:700}}>📉 MINIM</span>}
+                        </div>
+                      </div>
+                      <div style={{fontSize:14,fontWeight:600,color:'#1e293b',marginBottom:4,lineHeight:1.3}}>{s.den}</div>
+                      {s.producator && <div style={{fontSize:12,color:'#94a3b8',marginBottom:10}}>{s.producator} {s.lot && `· Lot: ${s.lot}`}</div>}
+                      {s.expirare && <div style={{fontSize:12,color:expirat?'#dc2626':'#64748b',marginBottom:10}}>Expiră: {fmtDate(s.expirare)}</div>}
+
+                      {/* Bară stoc */}
+                      <div style={{marginBottom:12}}>
+                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                          <span style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>STOC</span>
+                          <span style={{fontSize:16,fontWeight:800,color:minim?'#dc2626':'#1e293b'}}>{s.cantitate} <span style={{fontSize:11,fontWeight:400,color:'#94a3b8'}}>/ min {s.stoc_min}</span></span>
+                        </div>
+                        <div style={{background:'#f1f5f9',borderRadius:99,height:8,overflow:'hidden'}}>
+                          <div style={{width:Math.max(5,pct)+'%',height:'100%',background:expirat?'#dc2626':minim?'#d97706':'#1a56db',borderRadius:99,transition:'width 0.6s'}} />
+                        </div>
+                      </div>
+
+                      <button onClick={()=>{setShowMiscare(s);setMiscareForm({tip:'intrare',cant:1,motiv:'',data:todayStr()})}}
+                        style={{width:'100%',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:10,padding:'8px',fontSize:13,fontWeight:600,color:'#475569',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,transition:'all 0.15s'}}
+                        onMouseOver={e=>{e.currentTarget.style.background='#eff6ff';e.currentTarget.style.color='#1a56db';e.currentTarget.style.borderColor='#bfdbfe'}}
+                        onMouseOut={e=>{e.currentTarget.style.background='#f8fafc';e.currentTarget.style.color='#475569';e.currentTarget.style.borderColor='#e2e8f0'}}>
+                        ± Înregistrare mișcare
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ MIȘCĂRI ══════════════════════════════════════════ */}
+        {tab === 'miscari' && (
+          <div className="table-wrapper">
+            {miscari.length === 0 ? (
+              <div style={{padding:60,textAlign:'center',color:'#94a3b8'}}>
+                <div style={{fontSize:48,marginBottom:12}}>📋</div>
+                <div>Nicio mișcare înregistrată</div>
+              </div>
+            ) : (
+              <table>
+                <thead><tr><th>Data</th><th>Kit</th><th>Tip</th><th>Cantitate</th><th>Stoc după</th><th>Motiv</th></tr></thead>
+                <tbody>
+                  {miscari.map(m => (
+                    <tr key={m.id}>
+                      <td>{m.data}</td>
+                      <td style={{fontWeight:500}}>{m.kit_den}</td>
+                      <td><span style={{background:m.tip==='intrare'?'#f0fdf4':'#fef2f2',color:m.tip==='intrare'?'#166534':'#991b1b',border:`1px solid ${m.tip==='intrare'?'#bbf7d0':'#fecaca'}`,padding:'4px 12px',borderRadius:20,fontSize:12,fontWeight:700}}>{m.tip==='intrare'?'↑ Intrare':'↓ Ieșire'}</span></td>
+                      <td style={{fontWeight:700,fontSize:16}}>{m.cant}</td>
+                      <td style={{color:'#64748b'}}>{m.stoc_dupa}</td>
+                      <td style={{color:'#94a3b8'}}>{m.motiv||'—'}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ═══ METROLOGIE ═══════════════════════════════════════ */}
+        {tab === 'metrologie' && (
+          <div>
+            {/* Stats */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
+              {[
+                {label:'Total înregistrări',val:metro.length,color:'#1a56db',bg:'#eff6ff',icon:'📊'},
+                {label:'Expirate',val:metroExpirate.length,color:'#dc2626',bg:'#fef2f2',icon:'⚠️'},
+                {label:'Scadente în 30 zile',val:metroCurand.length,color:'#d97706',bg:'#fffbeb',icon:'⏰'},
+              ].map((s,i)=>(
+                <div key={i} style={{background:'white',border:'1px solid #e2e8f0',borderRadius:14,padding:20,display:'flex',alignItems:'center',gap:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                  <div style={{width:44,height:44,borderRadius:12,background:s.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>{s.icon}</div>
+                  <div><div style={{fontSize:28,fontWeight:800,color:s.color}}>{s.val}</div><div style={{fontSize:12,color:'#94a3b8',fontWeight:600}}>{s.label}</div></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Filtre echipamente */}
+            <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+              <button onClick={()=>setMetroEch(null)} style={{padding:'6px 14px',borderRadius:8,border:`2px solid ${!metroEch?'#1a56db':'#e2e8f0'}`,background:!metroEch?'#1a56db':'white',color:!metroEch?'white':'#64748b',fontSize:12,fontWeight:600,cursor:'pointer'}}>Toate</button>
+              {[...new Set(metro.map(m=>m.echipament))].map(e=>{
+                const shortName = e?.split('(')[0]?.trim()
+                const ech = ECHIPAMENTE_LIST.find(x=>x.den===e)
+                const icon = TIP_ECH_ICONS[ech?.tip] || '🔧'
+                const isAct = metroEch === e
+                return (
+                  <button key={e} onClick={()=>setMetroEch(isAct?null:e)} style={{padding:'6px 12px',borderRadius:8,border:`2px solid ${isAct?'#1a56db':'#e2e8f0'}`,background:isAct?'#eff6ff':'white',color:isAct?'#1a56db':'#64748b',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.15s'}}>
+                    {icon} {shortName}
+                  </button>
+                )
+              })}
+              <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={()=>setShowAddMetro(true)}>+ Înregistrare</button>
+            </div>
+
+            {/* Grid metrologie */}
+            {echMetro.length === 0 ? (
+              <div style={{background:'white',borderRadius:16,border:'1px solid #e2e8f0',padding:60,textAlign:'center',color:'#94a3b8'}}>
+                <div style={{fontSize:48,marginBottom:12}}>🔧</div>
+                <div>Nicio înregistrare metrologie</div>
+              </div>
+            ) : (
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
+                {echMetro.map(m => {
+                  const days = daysUntil(m.data_sc)
+                  const expirat = days < 0
+                  const curand = days >= 0 && days <= 30
+                  const mc = METRO_COLORS[m.tip] || METRO_COLORS.etalonare
+                  const ech = ECHIPAMENTE_LIST.find(x=>x.den===m.echipament)
+                  const echIcon = TIP_ECH_ICONS[ech?.tip] || '🔧'
+                  return (
+                    <div key={m.id} style={{background:'white',borderRadius:16,border:`2px solid ${expirat?'#fecaca':curand?'#fde68a':'#e2e8f0'}`,padding:20,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:40,height:40,borderRadius:10,background:mc.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>{mc.icon}</div>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:700,color:mc.color,textTransform:'capitalize'}}>{m.tip}</div>
+                            <div style={{fontSize:10,color:'#94a3b8'}}>{ech?.tip || ''}</div>
+                          </div>
+                        </div>
+                        <span style={{background:expirat?'#fef2f2':curand?'#fffbeb':'#f0fdf4',color:expirat?'#991b1b':curand?'#92400e':'#166534',border:`1px solid ${expirat?'#fecaca':curand?'#fde68a':'#bbf7d0'}`,padding:'4px 10px',borderRadius:20,fontSize:11,fontWeight:700}}>
+                          {expirat?'✗ Expirat':curand?`⏰ ${days}z`:'✓ Valabil'}
+                        </span>
+                      </div>
+                      <div style={{fontSize:15,fontWeight:700,color:'#1e293b',marginBottom:4}}>{echIcon} {m.echipament?.split('(')[0]?.trim()}</div>
+                      {m.echipament?.includes('(') && <div style={{fontSize:12,color:'#94a3b8',fontFamily:'monospace',marginBottom:10}}>({m.echipament.match(/\(([^)]+)\)/)?.[1]})</div>}
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14,fontSize:12}}>
+                        <div style={{background:'#f8fafc',borderRadius:8,padding:'8px 10px'}}>
+                          <div style={{color:'#94a3b8',fontWeight:600,fontSize:10,marginBottom:2}}>DATA EFECTUARE</div>
+                          <div style={{fontWeight:600,color:'#1e293b'}}>{fmtDate(m.data_ef)}</div>
+                        </div>
+                        <div style={{background:expirat?'#fef2f2':curand?'#fffbeb':'#f8fafc',borderRadius:8,padding:'8px 10px'}}>
+                          <div style={{color:'#94a3b8',fontWeight:600,fontSize:10,marginBottom:2}}>SCADENȚĂ</div>
+                          <div style={{fontWeight:700,color:expirat?'#dc2626':curand?'#d97706':'#1e293b'}}>{fmtDate(m.data_sc)}</div>
+                        </div>
+                      </div>
+                      {m.exec_firma && <div style={{fontSize:12,color:'#64748b',marginBottom:10}}>🏢 {m.exec_firma}</div>}
+                      {m.cert && <div style={{fontSize:12,color:'#64748b',fontFamily:'monospace',marginBottom:10}}>📜 {m.cert}</div>}
+                      <div>
+                        {m.cert_url ? (
+                          <a href={m.cert_url} target="_blank" rel="noreferrer" style={{background:'#eff6ff',color:'#1a56db',border:'1px solid #bfdbfe',padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:600,textDecoration:'none',display:'inline-block'}}>📄 Certificat</a>
+                        ) : (
+                          <label style={{background:'#f8fafc',border:'1px dashed #e2e8f0',color:'#94a3b8',padding:'6px 14px',borderRadius:8,fontSize:12,cursor:'pointer',display:'inline-block'}}>
+                            📎 Upload certificat
+                            <input type="file" accept=".pdf" style={{display:'none'}} onChange={e=>uploadMetroCert(m.id,e.target.files[0])} />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ═══ MODAL KIT NOU ════════════════════════════════════ */}
       {showAddKit && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:'16px'}}>
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b"><h2 className="text-lg font-bold">Kit / Reactiv nou</h2></div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cod *</label>
-                  <input type="text" value={kitForm.cod} onChange={e => setKitForm(p => ({ ...p, cod: e.target.value }))}
-                    placeholder="ex. KIT-CT-001" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tip</label>
-                  <select value={kitForm.tip} onChange={e => setKitForm(p => ({ ...p, tip: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                    {TIPURI_KIT.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
+        <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowAddKit(false)}>
+          <div className="modal" style={{maxWidth:540}}>
+            <div className="modal-header" style={{background:TIPURI_KIT_COLORS[kitForm.tip]?.color||'#1a56db',borderRadius:'20px 20px 0 0'}}>
+              <div className="modal-title" style={{color:'white'}}>{TIPURI_KIT_COLORS[kitForm.tip]?.icon} Kit / Reactiv nou</div>
+            </div>
+            <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Denumire *</label>
-                <input type="text" value={kitForm.den} onChange={e => setKitForm(p => ({ ...p, den: e.target.value }))}
-                  placeholder="ex. AmpliSens Chlamydia trachomatis-FL" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Producător</label>
-                  <input type="text" value={kitForm.producator} onChange={e => setKitForm(p => ({ ...p, producator: e.target.value }))}
-                    placeholder="ex. AmpliSens" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nr. lot</label>
-                  <input type="text" value={kitForm.lot} onChange={e => setKitForm(p => ({ ...p, lot: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" />
+                <label className="form-label">Tip kit</label>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {TIPURI_KIT.map(t=>{const tc=TIPURI_KIT_COLORS[t];return(
+                    <button key={t} type="button" onClick={()=>setKitForm(p=>({...p,tip:t}))}
+                      style={{padding:'10px 8px',borderRadius:10,border:`2px solid ${kitForm.tip===t?tc.color:'#e2e8f0'}`,background:kitForm.tip===t?tc.bg:'white',color:kitForm.tip===t?tc.color:'#64748b',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}>
+                      <div style={{fontSize:18,marginBottom:3}}>{tc.icon}</div>{t}
+                    </button>
+                  )})}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expirare</label>
-                  <input type="date" value={kitForm.expirare} onChange={e => setKitForm(p => ({ ...p, expirare: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cantitate</label>
-                  <input type="number" min="0" step="0.5" value={kitForm.cantitate} onChange={e => setKitForm(p => ({ ...p, cantitate: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Teste/kit</label>
-                  <input type="number" min="1" value={kitForm.teste_per_kit} onChange={e => setKitForm(p => ({ ...p, teste_per_kit: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div><label className="form-label">Cod *</label><input type="text" className="form-control" value={kitForm.cod} onChange={e=>setKitForm(p=>({...p,cod:e.target.value}))} placeholder="ex. KIT-CT-001" style={{fontFamily:'monospace'}} /></div>
+                <div><label className="form-label">Producător</label><input type="text" className="form-control" value={kitForm.producator} onChange={e=>setKitForm(p=>({...p,producator:e.target.value}))} placeholder="ex. AmpliSens" /></div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stoc minim alertă</label>
-                <input type="number" min="0" step="0.5" value={kitForm.stoc_min} onChange={e => setKitForm(p => ({ ...p, stoc_min: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <div><label className="form-label">Denumire *</label><input type="text" className="form-control" value={kitForm.den} onChange={e=>setKitForm(p=>({...p,den:e.target.value}))} placeholder="ex. AmpliSens Chlamydia trachomatis-FL" /></div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
+                <div><label className="form-label">Nr. lot</label><input type="text" className="form-control" value={kitForm.lot} onChange={e=>setKitForm(p=>({...p,lot:e.target.value}))} style={{fontFamily:'monospace'}} /></div>
+                <div><label className="form-label">Expirare</label><input type="date" className="form-control" value={kitForm.expirare} onChange={e=>setKitForm(p=>({...p,expirare:e.target.value}))} /></div>
+                <div><label className="form-label">Teste/kit</label><input type="number" min="1" className="form-control" value={kitForm.teste_per_kit} onChange={e=>setKitForm(p=>({...p,teste_per_kit:e.target.value}))} /></div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div><label className="form-label">Cantitate inițială</label><input type="number" min="0" step="0.5" className="form-control" value={kitForm.cantitate} onChange={e=>setKitForm(p=>({...p,cantitate:e.target.value}))} /></div>
+                <div><label className="form-label">Stoc minim alertă</label><input type="number" min="0" step="0.5" className="form-control" value={kitForm.stoc_min} onChange={e=>setKitForm(p=>({...p,stoc_min:e.target.value}))} /></div>
               </div>
             </div>
-            <div className="p-6 border-t flex justify-end gap-3">
-              <button onClick={() => setShowAddKit(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg">Anulare</button>
-              <button onClick={saveKit} disabled={saving} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:opacity-50">
-                {saving ? 'Se salvează...' : 'Salvează'}
-              </button>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={()=>setShowAddKit(false)}>Anulare</button>
+              <button className="btn btn-primary" onClick={saveKit} disabled={saving}>{saving?'...':'Salvează'}</button>
             </div>
           </div>
         </div>
@@ -475,127 +458,89 @@ export default function Stocuri() {
 
       {/* ═══ MODAL MIȘCARE ════════════════════════════════════ */}
       {showMiscare && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:'16px'}}>
-          <div className="bg-white rounded-2xl w-full max-w-md">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-bold">Mișcare stoc</h2>
-              <p className="text-sm text-gray-500 mt-1">{showMiscare.den} · Stoc curent: <strong>{showMiscare.cantitate}</strong></p>
+        <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowMiscare(null)}>
+          <div className="modal" style={{maxWidth:420}}>
+            <div className="modal-header" style={{background:miscareForm.tip==='intrare'?'#16a34a':'#dc2626',borderRadius:'20px 20px 0 0'}}>
+              <div className="modal-title" style={{color:'white'}}>{miscareForm.tip==='intrare'?'↑ Intrare stoc':'↓ Ieșire stoc'}</div>
+              <div style={{fontSize:12,color:'rgba(255,255,255,0.8)'}}>{showMiscare.den}</div>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                {['intrare', 'iesire'].map(t => (
-                  <button key={t} onClick={() => setMiscareForm(p => ({ ...p, tip: t }))}
-                    className={`py-2 rounded-lg text-sm font-medium border-2 transition-colors
-                      ${miscareForm.tip === t ? t === 'intrare' ? 'bg-green-600 border-green-600 text-white' : 'bg-red-600 border-red-600 text-white' : 'border-gray-200 text-gray-600'}`}>
-                    {t === 'intrare' ? '↑ Intrare' : '↓ Ieșire'}
+            <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                {['intrare','iesire'].map(t=>(
+                  <button key={t} type="button" onClick={()=>setMiscareForm(p=>({...p,tip:t}))}
+                    style={{padding:'14px',borderRadius:12,border:`2px solid ${miscareForm.tip===t?t==='intrare'?'#16a34a':'#dc2626':'#e2e8f0'}`,background:miscareForm.tip===t?t==='intrare'?'#f0fdf4':'#fef2f2':'white',color:miscareForm.tip===t?t==='intrare'?'#166534':'#991b1b':'#64748b',fontSize:14,fontWeight:700,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}>
+                    {t==='intrare'?'↑ Intrare':'↓ Ieșire'}
                   </button>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cantitate</label>
-                  <input type="number" min="0.5" step="0.5" value={miscareForm.cant}
-                    onChange={e => setMiscareForm(p => ({ ...p, cant: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <div style={{background:'#f8fafc',borderRadius:12,padding:'14px 16px',textAlign:'center'}}>
+                <div style={{fontSize:12,color:'#94a3b8',fontWeight:600,marginBottom:4}}>STOC CURENT</div>
+                <div style={{fontSize:32,fontWeight:800,color:'#1e293b'}}>{showMiscare.cantitate}</div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div><label className="form-label">Cantitate</label><input type="number" min="0.5" step="0.5" className="form-control" value={miscareForm.cant} onChange={e=>setMiscareForm(p=>({...p,cant:e.target.value}))} style={{fontSize:18,fontWeight:700,textAlign:'center'}} /></div>
+                <div><label className="form-label">Data</label><input type="date" className="form-control" value={miscareForm.data} onChange={e=>setMiscareForm(p=>({...p,data:e.target.value}))} /></div>
+              </div>
+              <div style={{background:miscareForm.tip==='intrare'?'#f0fdf4':'#fef2f2',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
+                <div style={{fontSize:11,color:'#94a3b8',fontWeight:600,marginBottom:4}}>STOC DUPĂ MIȘCARE</div>
+                <div style={{fontSize:28,fontWeight:800,color:miscareForm.tip==='intrare'?'#16a34a':'#dc2626'}}>
+                  {miscareForm.tip==='intrare'?showMiscare.cantitate+parseFloat(miscareForm.cant||0):Math.max(0,showMiscare.cantitate-parseFloat(miscareForm.cant||0))}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                  <input type="date" value={miscareForm.data}
-                    onChange={e => setMiscareForm(p => ({ ...p, data: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Motiv</label>
-                <input type="text" value={miscareForm.motiv}
-                  onChange={e => setMiscareForm(p => ({ ...p, motiv: e.target.value }))}
-                  placeholder="ex. Recepție lot nou, Utilizare serie IST"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div className={`rounded-lg p-3 text-sm font-medium ${miscareForm.tip === 'intrare' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                Stoc după mișcare: {miscareForm.tip === 'intrare' ? showMiscare.cantitate + parseFloat(miscareForm.cant || 0) : Math.max(0, showMiscare.cantitate - parseFloat(miscareForm.cant || 0))}
-              </div>
+              <div><label className="form-label">Motiv</label><input type="text" className="form-control" value={miscareForm.motiv} onChange={e=>setMiscareForm(p=>({...p,motiv:e.target.value}))} placeholder="ex. Recepție lot nou, Utilizare serie IST" /></div>
             </div>
-            <div className="p-6 border-t flex justify-end gap-3">
-              <button onClick={() => setShowMiscare(null)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg">Anulare</button>
-              <button onClick={saveMiscare} disabled={saving} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:opacity-50">
-                {saving ? 'Se salvează...' : 'Confirmă'}
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={()=>setShowMiscare(null)}>Anulare</button>
+              <button className="btn" onClick={saveMiscare} disabled={saving}
+                style={{background:miscareForm.tip==='intrare'?'#16a34a':'#dc2626',color:'white',padding:'8px 20px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}}>
+                {saving?'...':miscareForm.tip==='intrare'?'✓ Confirmă intrarea':'✓ Confirmă ieșirea'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ═══ MODAL METROLOGIE NOU ═════════════════════════════ */}
+      {/* ═══ MODAL METROLOGIE ═════════════════════════════════ */}
       {showAddMetro && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:'16px'}}>
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b"><h2 className="text-lg font-bold">Înregistrare metrologie</h2></div>
-            <div className="p-6 space-y-4">
+        <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowAddMetro(false)}>
+          <div className="modal" style={{maxWidth:520}}>
+            <div className="modal-header" style={{background:METRO_COLORS[metroForm.tip]?.color||'#1a56db',borderRadius:'20px 20px 0 0'}}>
+              <div className="modal-title" style={{color:'white'}}>{METRO_COLORS[metroForm.tip]?.icon} Înregistrare metrologie</div>
+            </div>
+            <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Echipament</label>
-                <select value={metroForm.echipament} onChange={e => setMetroForm(p => ({ ...p, echipament: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  {ECHIPAMENTE_LIST.map(e => <option key={e.id} value={e.den}>{e.den}</option>)}
+                <label className="form-label">Tip intervenție</label>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}}>
+                  {TIPURI_METRO.map(t=>{const mc=METRO_COLORS[t];return(
+                    <button key={t} type="button" onClick={()=>setMetroForm(p=>({...p,tip:t}))}
+                      style={{padding:'10px 6px',borderRadius:10,border:`2px solid ${metroForm.tip===t?mc.color:'#e2e8f0'}`,background:metroForm.tip===t?mc.bg:'white',color:metroForm.tip===t?mc.color:'#64748b',fontSize:11,fontWeight:600,cursor:'pointer',textAlign:'center'}}>
+                      <div style={{fontSize:18,marginBottom:3}}>{mc.icon}</div>{t}
+                    </button>
+                  )})}
+                </div>
+              </div>
+              <div><label className="form-label">Echipament</label>
+                <select className="form-control" value={metroForm.echipament} onChange={e=>setMetroForm(p=>({...p,echipament:e.target.value}))}>
+                  {ECHIPAMENTE_LIST.map(e=><option key={e.id} value={e.den}>{TIP_ECH_ICONS[e.tip]||'🔧'} {e.den}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tip intervenție</label>
-                  <select value={metroForm.tip} onChange={e => setMetroForm(p => ({ ...p, tip: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                    {TIPURI_METRO.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Executant</label>
-                  <select value={metroForm.exec_tip} onChange={e => setMetroForm(p => ({ ...p, exec_tip: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div><label className="form-label">Executant</label>
+                  <select className="form-control" value={metroForm.exec_tip} onChange={e=>setMetroForm(p=>({...p,exec_tip:e.target.value}))}>
                     <option value="extern">Firmă externă</option>
                     <option value="intern">Intern</option>
                   </select>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Firma executantă</label>
-                <input type="text" value={metroForm.exec_firma} onChange={e => setMetroForm(p => ({ ...p, exec_firma: e.target.value }))}
-                  placeholder="ex. MetroLab SRL" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data efectuare</label>
-                  <input type="date" value={metroForm.data_ef} onChange={e => setMetroForm(p => ({ ...p, data_ef: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Scadență următoare</label>
-                  <input type="date" value={metroForm.data_sc} onChange={e => setMetroForm(p => ({ ...p, data_sc: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nr. certificat</label>
-                  <input type="text" value={metroForm.cert} onChange={e => setMetroForm(p => ({ ...p, cert: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cost (MDL)</label>
-                  <input type="number" value={metroForm.cost} onChange={e => setMetroForm(p => ({ ...p, cost: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Observații</label>
-                <textarea value={metroForm.obs} rows={2} onChange={e => setMetroForm(p => ({ ...p, obs: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none" />
+                <div><label className="form-label">Firma executantă</label><input type="text" className="form-control" value={metroForm.exec_firma} onChange={e=>setMetroForm(p=>({...p,exec_firma:e.target.value}))} placeholder="ex. MetroLab SRL" /></div>
+                <div><label className="form-label">Data efectuare</label><input type="date" className="form-control" value={metroForm.data_ef} onChange={e=>setMetroForm(p=>({...p,data_ef:e.target.value}))} /></div>
+                <div><label className="form-label">Scadență</label><input type="date" className="form-control" value={metroForm.data_sc} onChange={e=>setMetroForm(p=>({...p,data_sc:e.target.value}))} /></div>
+                <div><label className="form-label">Nr. certificat</label><input type="text" className="form-control" value={metroForm.cert} onChange={e=>setMetroForm(p=>({...p,cert:e.target.value}))} /></div>
+                <div><label className="form-label">Cost (MDL)</label><input type="number" className="form-control" value={metroForm.cost} onChange={e=>setMetroForm(p=>({...p,cost:e.target.value}))} /></div>
               </div>
             </div>
-            <div className="p-6 border-t flex justify-end gap-3">
-              <button onClick={() => setShowAddMetro(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg">Anulare</button>
-              <button onClick={saveMetro} disabled={saving} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:opacity-50">
-                {saving ? 'Se salvează...' : 'Salvează'}
-              </button>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={()=>setShowAddMetro(false)}>Anulare</button>
+              <button className="btn btn-primary" onClick={saveMetro} disabled={saving}>{saving?'...':'Salvează'}</button>
             </div>
           </div>
         </div>

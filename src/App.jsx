@@ -9,6 +9,7 @@ import Calitate from './pages/Calitate'
 import Stocuri from './pages/Stocuri'
 import Registre from './pages/Registre'
 import Catalog from './pages/Catalog'
+import './design.css'
 
 const MENU_ADMIN = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
@@ -36,11 +37,6 @@ const MENU_BIOLOG = [
   { id: 'stocuri', label: 'Stocuri & Metrologie', icon: '📦' },
 ]
 
-const ROL_COLORS = {
-  admin: 'bg-blue-100 text-blue-700',
-  rmc: 'bg-purple-100 text-purple-700',
-  biolog: 'bg-teal-100 text-teal-700',
-}
 const ROL_LABELS = { admin: 'Administrator', rmc: 'RMC', biolog: 'Biolog medical' }
 
 export default function App() {
@@ -48,53 +44,42 @@ export default function App() {
   const [userRol, setUserRol] = useState(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [moldacData, setMoldacData] = useState(localStorage.getItem('moldac_data') || '2025-05-01')
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const { data: roleData } = await supabase.from('user_roles').select('*').eq('email', session.user.email).single()
-        if (roleData?.activ) {
-          setSession(session)
-          setUserRol(roleData)
-        } else {
-          await supabase.auth.signOut()
-        }
+        if (roleData?.activ) { setSession(session); setUserRol(roleData) }
+        else await supabase.auth.signOut()
       }
       setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setSession(null)
-        setUserRol(null)
-        setPage('dashboard')
-      }
+      if (event === 'SIGNED_OUT') { setSession(null); setUserRol(null); setPage('dashboard') }
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  function handleLogin({ user, rol }) {
-    setSession({ user })
-    setUserRol(rol)
-    setPage('dashboard')
-  }
+  function handleLogin({ user, rol }) { setSession({ user }); setUserRol(rol); setPage('dashboard') }
+  async function handleLogout() { await supabase.auth.signOut(); setSession(null); setUserRol(null) }
+  function handleMoldacChange(val) { setMoldacData(val); localStorage.setItem('moldac_data', val) }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    setSession(null)
-    setUserRol(null)
-  }
-
-  function handleMoldacChange(val) {
-    setMoldacData(val)
-    localStorage.setItem('moldac_data', val)
-  }
+  function navigate(p) { setPage(p); setSidebarOpen(false) }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🔬</div>
-        <div style={{ color: '#64748b', fontSize: 14 }}>Se încarcă SMC Digital...</div>
+        <div style={{ width: 72, height: 72, background: '#1a56db', borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, margin: '0 auto 20px', boxShadow: '0 8px 20px rgba(26,86,219,0.4)' }}>🔬</div>
+        <div style={{ color: '#e2e8f0', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>SMC Digital</div>
+        <div style={{ color: '#64748b', fontSize: 13 }}>Invitro Diagnostics SRL</div>
+        <div style={{ marginTop: 24, display: 'flex', gap: 6, justifyContent: 'center' }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a56db', animation: `pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />
+          ))}
+        </div>
+        <style>{`@keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }`}</style>
       </div>
     </div>
   )
@@ -103,52 +88,75 @@ export default function App() {
 
   const menu = userRol.rol === 'admin' ? MENU_ADMIN : userRol.rol === 'rmc' ? MENU_RMC : MENU_BIOLOG
   const initiale = userRol.nume?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  const currentPage = menu.find(m => m.id === page)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-56 bg-white border-r border-gray-200 min-h-screen flex-shrink-0 flex flex-col">
-        <div className="p-4 border-b">
-          <div className="font-bold text-blue-700 text-sm">SMC Digital</div>
-          <div className="text-xs text-gray-400">Invitro Diagnostics SRL</div>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+
+      {/* Mobile overlay */}
+      <div className={`mobile-overlay ${sidebarOpen ? 'show' : ''}`} onClick={() => setSidebarOpen(false)} />
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        {/* Logo */}
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">🔬</div>
+          <div className="sidebar-logo-title">SMC Digital</div>
+          <div className="sidebar-logo-sub">Invitro Diagnostics SRL</div>
         </div>
-        <nav className="p-2 flex-1">
+
+        {/* Nav */}
+        <nav className="sidebar-nav">
+          <div className="sidebar-section">Navigare</div>
           {menu.map(m => (
-            <button key={m.id} onClick={() => setPage(m.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 mb-1 transition-colors
-                ${page === m.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
-              <span>{m.icon}</span><span>{m.label}</span>
+            <button key={m.id} onClick={() => navigate(m.id)}
+              className={`sidebar-btn ${page === m.id ? 'active' : ''}`}>
+              <span className="sidebar-icon">{m.icon}</span>
+              <span>{m.label}</span>
             </button>
           ))}
         </nav>
-        <div style={{ padding: '12px', borderTop: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1d4ed8', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-              {initiale}
-            </div>
+
+        {/* User */}
+        <div className="sidebar-user">
+          <div className="sidebar-user-card">
+            <div className="sidebar-avatar">{initiale}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userRol.nume}</div>
-              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, fontWeight: 500 }} className={ROL_COLORS[userRol.rol]}>
-                {ROL_LABELS[userRol.rol]}
-              </span>
+              <div className="sidebar-user-name">{userRol.nume}</div>
+              <div className="sidebar-user-rol">{ROL_LABELS[userRol.rol]}</div>
             </div>
           </div>
-          <button onClick={handleLogout}
-            style={{ width: '100%', background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px', fontSize: 12, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <button className="sidebar-logout" onClick={handleLogout}>
             🚪 Deconectare
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        {page === 'dashboard' && <Dashboard onNavigate={setPage} moldacData={moldacData} onMoldacChange={handleMoldacChange} userRol={userRol} />}
-        {page === 'nc' && <NC userRol={userRol} />}
-        {page === 'documente' && <Documente userRol={userRol} />}
-        {page === 'personal' && <Personal userRol={userRol} />}
-        {page === 'calitate' && <Calitate userRol={userRol} />}
-        {page === 'stocuri' && <Stocuri userRol={userRol} />}
-        {page === 'registre' && <Registre userRol={userRol} />}
-        {page === 'catalog' && <Catalog userRol={userRol} />}
-      </main>
+      {/* Main */}
+      <div className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+        {/* Mobile header */}
+        <div className="mobile-header">
+          <button className="hamburger" onClick={() => setSidebarOpen(true)}>
+            <span /><span /><span />
+          </button>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>
+            {currentPage?.icon} {currentPage?.label}
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div style={{ flex: 1 }} className="fade-in">
+          {page === 'dashboard' && <Dashboard onNavigate={navigate} moldacData={moldacData} onMoldacChange={handleMoldacChange} userRol={userRol} />}
+          {page === 'nc' && <NC userRol={userRol} />}
+          {page === 'documente' && <Documente userRol={userRol} />}
+          {page === 'personal' && <Personal userRol={userRol} />}
+          {page === 'calitate' && <Calitate userRol={userRol} />}
+          {page === 'stocuri' && <Stocuri userRol={userRol} />}
+          {page === 'registre' && <Registre userRol={userRol} />}
+          {page === 'catalog' && <Catalog userRol={userRol} />}
+        </div>
+      </div>
     </div>
   )
 }
