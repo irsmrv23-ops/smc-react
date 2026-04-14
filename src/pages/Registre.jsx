@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 
 const SALI = ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 1A']
 const PERSONAL = ['Rotari Ion','Croitoru Tatiana','Jentimir Valeria','Andrian Maria','Antropov Marina']
-const TEMP_MIN = 18, TEMP_MAX = 24, UMID_MIN = 65, UMID_MAX = 75
+const TEMP_MIN = 20, TEMP_MAX = 25, UMID_MIN = 30, UMID_MAX = 50
 
 function todayStr() { return new Date().toISOString().slice(0, 10) }
 function nowTime() { return new Date().toTimeString().slice(0, 5) }
@@ -210,7 +210,7 @@ export default function Registre() {
         {tab === 'temperatura' && (
           <div>
             <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:12,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#1e40af',fontWeight:500}}>
-              📏 Limite: <strong>18–24°C</strong> · <strong>65–75% umiditate</strong> · PG-6.3/F-01
+              📏 Limite: <strong>20–25°C</strong> · <strong>30–50% umiditate relativă</strong> · FDA/CDC/ISO 15189 · PG-6.3/F-01
             </div>
 
             {/* Selector săli + buton */}
@@ -519,12 +519,12 @@ export default function Registre() {
                 <div>
                   <label className="form-label">Temperatura (°C)</label>
                   <input type="number" step="0.1" className="form-control" value={tempForm.temp} onChange={e=>setTempForm(p=>({...p,temp:e.target.value}))} placeholder="ex. 21.5" style={{fontSize:18,textAlign:'center',fontWeight:700}} />
-                  <div style={{fontSize:11,color:'#94a3b8',marginTop:4,textAlign:'center'}}>Limite: 18–24°C</div>
+                  <div style={{fontSize:11,color:'#94a3b8',marginTop:4,textAlign:'center'}}>Limite: 20–25°C</div>
                 </div>
                 <div>
                   <label className="form-label">Umiditate (%)</label>
                   <input type="number" step="0.1" className="form-control" value={tempForm.umid} onChange={e=>setTempForm(p=>({...p,umid:e.target.value}))} placeholder="ex. 68.0" style={{fontSize:18,textAlign:'center',fontWeight:700}} />
-                  <div style={{fontSize:11,color:'#94a3b8',marginTop:4,textAlign:'center'}}>Limite: 65–75%</div>
+                  <div style={{fontSize:11,color:'#94a3b8',marginTop:4,textAlign:'center'}}>Limite: 30–50%</div>
                 </div>
               </div>
               {tempForm.temp && tempForm.umid && (
