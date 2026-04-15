@@ -29,6 +29,454 @@ function todayStr() { return new Date().toISOString().slice(0, 10) }
 function nowTime()  { return new Date().toTimeString().slice(0, 5) }
 function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('ro-RO') }
 
+// ── MODUL CURĂȚENIE — 3 sub-tab-uri ─────────────────────────
+function CuratenieModule({ solutii, setSolutii, curData, setCurData, today, SALI, SALI_SHORT, PERSONAL }) {
+  const [subTab, setSubTab] = useState('zilnica')
+  const [saving, setSaving] = useState(false)
+
+  // Zilnică state
+  const [zilnicaData, setZilnicaData] = useState([])
+  const [showZilnica, setShowZilnica] = useState(false)
+  const [zilnicaForm, setZilnicaForm] = useState({ sala: SALI[0], activitate: '', solutie: '', introdus_de: PERSONAL[0] })
+
+  // Săptămânală state
+  const [saptData, setSaptData] = useState([])
+  const [showSapt, setShowSapt] = useState(false)
+  const [saptForm, setSaptForm] = useState({ activitati: '', solutie: '', introdus_de: PERSONAL[0], supervizat_de: '' })
+
+  // F-502/e state
+  const [f502Data, setF502Data] = useState([])
+  const [showF502, setShowF502] = useState(false)
+  const [f502Form, setF502Form] = useState({ sala: SALI[0], solutie: '', concentratie: '', timp_actiune: '', suprafata: '', efectuat_de: PERSONAL[0], supervizat_de: '', obs: '' })
+
+  // Soluții
+  const [showSol, setShowSol] = useState(false)
+  const [nouaSol, setNouaSol] = useState({ den: '', concentratie: '', producator: '' })
+
+  function todayStr() { return new Date().toISOString().slice(0, 10) }
+  function nowTime() { return new Date().toTimeString().slice(0, 5) }
+  function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('ro-RO') }
+  function isMonday() { return new Date().getDay() === 1 }
+
+  useEffect(() => { loadCuratenie() }, [])
+
+  // Alertă zilnică
+  useEffect(() => {
+    const ora = new Date().getHours()
+    if (ora >= 7 && ora <= 9) {
+      const key = 'alert_cur_' + todayStr()
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        setTimeout(() => alert('⏰ Reminder zilnic!\nVerificați și introduceți înregistrările de curățenie ale femeii de serviciu:\n• 07:00 — Curățarea și dezinfectarea suprafețelor\n• 07:10 — Curățenie umedă\nSau introduceți-le acum dacă nu sunt.'), 1500)
+      }
+    }
+    if (isMonday()) {
+      const key = 'alert_sapt_' + todayStr()
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        setTimeout(() => alert('📅 Luni — Curățenie generală săptămânală!\nVerificați dacă femeia de serviciu a efectuat curățenia săptămânală (geamuri, pereți, zone acces limitat) și introduceți în registru.'), 3000)
+      }
+    }
+  }, [])
+
+  async function loadCuratenie() {
+    const [z, s, f] = await Promise.all([
+      supabase.from('curatenie_zilnica').select('*').order('ts', { ascending: false }).limit(300),
+      supabase.from('curatenie_sapt').select('*').order('ts', { ascending: false }).limit(100),
+      supabase.from('curatenie_f502').select('*').order('ts', { ascending: false }).limit(200),
+    ])
+    setZilnicaData(z.data || [])
+    setSaptData(s.data || [])
+    setF502Data(f.data || [])
+  }
+
+  async function saveZilnica() {
+    if (!zilnicaForm.activitate) { alert('Selectați activitatea!'); return }
+    setSaving(true)
+    const rec = { id: 'ZIL-' + Date.now(), data: todayStr(), ora: nowTime(), sala: zilnicaForm.sala, activitate: zilnicaForm.activitate, solutie: zilnicaForm.solutie, introdus_de: zilnicaForm.introdus_de, ts: new Date().toISOString() }
+    const { error } = await supabase.from('curatenie_zilnica').insert(rec)
+    if (!error) { setZilnicaData(prev => [rec, ...prev]); setShowZilnica(false); setZilnicaForm(p => ({ ...p, activitate: '', solutie: '' })) }
+    else alert('Eroare: ' + error.message)
+    setSaving(false)
+  }
+
+  async function saveSapt() {
+    if (!saptForm.activitati) { alert('Selectați activitățile!'); return }
+    setSaving(true)
+    const rec = { id: 'SAPT-' + Date.now(), data: todayStr(), activitati: saptForm.activitati, solutie: saptForm.solutie, introdus_de: saptForm.introdus_de, supervizat_de: saptForm.supervizat_de, supervizat_la: saptForm.supervizat_de ? todayStr() : null, ts: new Date().toISOString() }
+    const { error } = await supabase.from('curatenie_sapt').insert(rec)
+    if (!error) { setSaptData(prev => [rec, ...prev]); setShowSapt(false); setSaptForm(p => ({ ...p, activitati: '', solutie: '', supervizat_de: '' })) }
+    else alert('Eroare: ' + error.message)
+    setSaving(false)
+  }
+
+  async function supervizSapt(id) {
+    await supabase.from('curatenie_sapt').update({ supervizat_de: PERSONAL[0], supervizat_la: todayStr() }).eq('id', id)
+    setSaptData(prev => prev.map(s => s.id === id ? { ...s, supervizat_de: PERSONAL[0], supervizat_la: todayStr() } : s))
+  }
+
+  async function saveF502() {
+    if (!f502Form.sala || !f502Form.solutie || !f502Form.efectuat_de) { alert('Completați câmpurile obligatorii!'); return }
+    setSaving(true)
+    const rec = { id: 'F502-' + Date.now(), data: todayStr(), ora: nowTime(), ...f502Form, suprafata: f502Form.suprafata ? parseFloat(f502Form.suprafata) : null, ts: new Date().toISOString() }
+    const { error } = await supabase.from('curatenie_f502').insert(rec)
+    if (!error) { setF502Data(prev => [rec, ...prev]); setShowF502(false); setF502Form(p => ({ ...p, solutie: '', concentratie: '', timp_actiune: '', suprafata: '', supervizat_de: '', obs: '' })) }
+    else alert('Eroare: ' + error.message)
+    setSaving(false)
+  }
+
+  async function supervizF502(id) {
+    await supabase.from('curatenie_f502').update({ supervizat_de: PERSONAL[0] }).eq('id', id)
+    setF502Data(prev => prev.map(f => f.id === id ? { ...f, supervizat_de: PERSONAL[0] } : f))
+  }
+
+  async function addSolutie() {
+    if (!nouaSol.den.trim()) { alert('Introduceți denumirea!'); return }
+    const rec = { id: 'SOL-' + Date.now(), ...nouaSol, ts: new Date().toISOString() }
+    await supabase.from('solutii').insert(rec)
+    setSolutii(prev => [rec, ...prev])
+    setNouaSol({ den: '', concentratie: '', producator: '' })
+  }
+
+  // Status săptămâna curentă
+  const startOfWeek = new Date(); startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); startOfWeek.setHours(0,0,0,0)
+  const saptAceasta = saptData.some(s => new Date(s.data) >= startOfWeek)
+  const zilnicaAziCount = zilnicaData.filter(z => z.data === today).length
+
+  return (
+    <div>
+      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 16px', marginBottom: 20, fontSize: 13, color: '#166534', fontWeight: 500 }}>
+        📋 Curățenie generală · F-502/e MS RM nr.630/2016 · PG-6.3 PO-AM.01
+      </div>
+
+      {/* Status rapid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
+        <div style={{ background: zilnicaAziCount >= 3 ? '#f0fdf4' : '#fef2f2', border: `1px solid ${zilnicaAziCount >= 3 ? '#bbf7d0' : '#fecaca'}`, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: zilnicaAziCount >= 3 ? '#16a34a' : '#dc2626' }}>{zilnicaAziCount}/3</div>
+          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 4 }}>ÎNREG. ZILNICE AZI</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>07:00 · 13:30 · 16:00</div>
+        </div>
+        <div style={{ background: saptAceasta ? '#f0fdf4' : '#fef2f2', border: `1px solid ${saptAceasta ? '#bbf7d0' : '#fecaca'}`, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: saptAceasta ? '#16a34a' : '#dc2626' }}>{saptAceasta ? '✓' : '✗'}</div>
+          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 4 }}>CURĂȚENIE SĂPTĂMÂNALĂ</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>Săptămâna curentă</div>
+        </div>
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#1e293b' }}>{f502Data.filter(f => f.data?.startsWith(today.slice(0, 7))).length}</div>
+          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 4 }}>F-502/e LUNA CURENTĂ</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>Personal laborator</div>
+        </div>
+      </div>
+
+      {/* Sub-tab-uri */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 24 }}>
+        {[
+          { id: 'zilnica', icon: '🧹', label: 'Zilnică', desc: 'Femeie serviciu · 07:00 / 13:30 / 16:00', color: '#16a34a' },
+          { id: 'saptamanala', icon: '📅', label: 'Săptămânală', desc: 'Femeie serviciu · Luni · Supervizare', color: '#d97706' },
+          { id: 'f502', icon: '📋', label: 'F-502/e Oficial', desc: 'Personal laborator · Registru tipizat', color: '#1a56db' },
+        ].map(t => {
+          const isAct = subTab === t.id
+          return (
+            <button key={t.id} onClick={() => setSubTab(t.id)}
+              style={{ background: isAct ? t.color : 'white', border: `2px solid ${isAct ? t.color : '#e2e8f0'}`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', boxShadow: isAct ? `0 6px 20px ${t.color}40` : '0 1px 3px rgba(0,0,0,0.06)', transform: isAct ? 'translateY(-2px)' : 'none' }}>
+              <div style={{ fontSize: 22, marginBottom: 6 }}>{t.icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: isAct ? 'white' : '#1e293b', marginBottom: 3 }}>{t.label}</div>
+              <div style={{ fontSize: 11, color: isAct ? 'rgba(255,255,255,0.7)' : '#94a3b8' }}>{t.desc}</div>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── ZILNICĂ ── */}
+      {subTab === 'zilnica' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>Curățenie zilnică — Femeie serviciu</div>
+              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Introduceți datele de pe foaia fizică</div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-outline" onClick={() => setShowSol(true)}>🧴 Soluții ({solutii.length})</button>
+              <button className="btn" style={{ background: '#16a34a', color: 'white', padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none' }} onClick={() => setShowZilnica(true)}>+ Înregistrare</button>
+            </div>
+          </div>
+          <div className="table-wrapper">
+            {zilnicaData.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}><div style={{ fontSize: 36, marginBottom: 12 }}>🧹</div><div>Nicio înregistrare</div></div>
+            ) : (
+              <table>
+                <thead><tr><th>#</th><th>Data</th><th>Ora</th><th>Sala</th><th>Activitatea</th><th>Soluție</th><th>Introdus de</th></tr></thead>
+                <tbody>
+                  {zilnicaData.map((d, i, a) => (
+                    <tr key={d.id} style={{ background: d.data === today ? '#f0fdf4' : '' }}>
+                      <td style={{ fontWeight: 700, color: '#94a3b8' }}>{a.length - i}</td>
+                      <td style={{ fontWeight: d.data === today ? 700 : 400 }}>{fmtDate(d.data)}</td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#16a34a' }}>{d.ora}</td>
+                      <td style={{ fontSize: 12 }}>{d.sala}</td>
+                      <td style={{ fontSize: 12 }}>{d.activitate}</td>
+                      <td style={{ color: '#64748b', fontSize: 12 }}>{d.solutie || '—'}</td>
+                      <td style={{ color: '#94a3b8', fontSize: 12 }}>{d.introdus_de}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── SĂPTĂMÂNALĂ ── */}
+      {subTab === 'saptamanala' && (
+        <div>
+          {!saptAceasta && (
+            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#92400e', fontWeight: 600 }}>
+              ⚠ Curățenia generală săptămânală nu a fost înregistrată săptămâna aceasta!
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>Curățenie săptămânală — Femeie serviciu</div>
+              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Efectuată Luni · Supervizare obligatorie</div>
+            </div>
+            <button className="btn" style={{ background: '#d97706', color: 'white', padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none' }} onClick={() => setShowSapt(true)}>+ Înregistrare</button>
+          </div>
+          <div className="table-wrapper">
+            {saptData.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}><div style={{ fontSize: 36, marginBottom: 12 }}>📅</div><div>Nicio înregistrare</div></div>
+            ) : (
+              <table>
+                <thead><tr><th>#</th><th>Data</th><th>Activități</th><th>Soluție</th><th>Introdus de</th><th>Supervizat</th></tr></thead>
+                <tbody>
+                  {saptData.map((d, i, a) => (
+                    <tr key={d.id} style={{ background: new Date(d.data) >= startOfWeek ? '#fffbeb' : '' }}>
+                      <td style={{ fontWeight: 700, color: '#94a3b8' }}>{a.length - i}</td>
+                      <td style={{ fontWeight: 500 }}>{fmtDate(d.data)}</td>
+                      <td style={{ fontSize: 12 }}>{d.activitati}</td>
+                      <td style={{ color: '#64748b', fontSize: 12 }}>{d.solutie || '—'}</td>
+                      <td style={{ color: '#64748b', fontSize: 12 }}>{d.introdus_de}</td>
+                      <td>{d.supervizat_de ? <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>✓ {d.supervizat_de}</span> : <button onClick={() => supervizSapt(d.id)} style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: '#92400e' }}>Supervizează</button>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── F-502/e ── */}
+      {subTab === 'f502' && (
+        <div>
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#1e40af', fontWeight: 500 }}>
+            📋 Formular tipizat F-502/e · Aprobat MS RM nr.630/08.08.2016 · Efectuat de personalul laboratorului
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>Registru curățenie generală și dezinfecție</div>
+            <button className="btn btn-primary" onClick={() => setShowF502(true)}>+ Înregistrare F-502/e</button>
+          </div>
+          <div className="table-wrapper">
+            {f502Data.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}><div style={{ fontSize: 36, marginBottom: 12 }}>📋</div><div>Nicio înregistrare</div></div>
+            ) : (
+              <table>
+                <thead><tr><th>#</th><th>Data</th><th>Ora</th><th>Sala/Încăpere</th><th>Soluție dezinfectantă</th><th>Concentrație</th><th>Timp acțiune</th><th>Suprafața m²</th><th>Efectuat de</th><th>Supervizat</th></tr></thead>
+                <tbody>
+                  {f502Data.map((d, i, a) => (
+                    <tr key={d.id}>
+                      <td style={{ fontWeight: 700, color: '#94a3b8' }}>{a.length - i}</td>
+                      <td style={{ fontWeight: 500 }}>{fmtDate(d.data)}</td>
+                      <td style={{ fontFamily: 'monospace' }}>{d.ora}</td>
+                      <td style={{ fontWeight: 500 }}>{d.sala}</td>
+                      <td style={{ fontWeight: 600, color: '#1a56db' }}>{d.solutie}</td>
+                      <td style={{ color: '#64748b' }}>{d.concentratie || '—'}</td>
+                      <td style={{ color: '#64748b' }}>{d.timp_actiune || '—'}</td>
+                      <td style={{ fontWeight: 600 }}>{d.suprafata ? `${d.suprafata} m²` : '—'}</td>
+                      <td style={{ color: '#64748b' }}>{d.efectuat_de}</td>
+                      <td>{d.supervizat_de ? <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>✓ {d.supervizat_de}</span> : <button onClick={() => supervizF502(d.id)} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: '#475569' }}>Supervizează</button>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ZILNICĂ */}
+      {showZilnica && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowZilnica(false)}>
+          <div className="modal" style={{ maxWidth: 460 }}>
+            <div className="modal-header" style={{ background: '#16a34a', borderRadius: '20px 20px 0 0' }}><div className="modal-title" style={{ color: 'white' }}>🧹 Curățenie zilnică</div><div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>Date de pe foaia femeii de serviciu</div></div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div><label className="form-label">Sala</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {SALI.map((s, i) => <button key={s} type="button" onClick={() => setZilnicaForm(p => ({ ...p, sala: s }))} style={{ padding: '8px', borderRadius: 10, border: `2px solid ${zilnicaForm.sala === s ? '#16a34a' : '#e2e8f0'}`, background: zilnicaForm.sala === s ? '#f0fdf4' : 'white', color: zilnicaForm.sala === s ? '#166534' : '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{SALI_SHORT[i]}</button>)}
+                </div>
+              </div>
+              <div><label className="form-label">Activitatea efectuată</label>
+                <select className="form-control" value={zilnicaForm.activitate} onChange={e => setZilnicaForm(p => ({ ...p, activitate: e.target.value }))}>
+                  <option value="">— selectați —</option>
+                  <optgroup label="Dimineața (07:00)">
+                    <option>07:00 — Curățarea și dezinfectarea suprafețelor</option>
+                    <option>07:10 — Curățenie umedă cu apă curată</option>
+                  </optgroup>
+                  <optgroup label="Amiaza (13:30)">
+                    <option>13:30 — Evacuare deșeuri menajere</option>
+                    <option>13:30 — Curățenie umedă cu apă curată</option>
+                    <option>13:30 — Dezinfectarea mânerelor ușilor</option>
+                  </optgroup>
+                  <optgroup label="După-amiaza (16:00)">
+                    <option>16:00 — Evacuare deșeuri menajere</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div><label className="form-label">Soluție dezinfectantă (opțional)</label>
+                <select className="form-control" value={zilnicaForm.solutie} onChange={e => setZilnicaForm(p => ({ ...p, solutie: e.target.value }))}>
+                  <option value="">— fără soluție —</option>
+                  {solutii.map(s => <option key={s.id} value={s.den}>{s.den}{s.concentratie ? ` (${s.concentratie})` : ''}</option>)}
+                </select>
+              </div>
+              <div><label className="form-label">Introdus de</label>
+                <select className="form-control" value={zilnicaForm.introdus_de} onChange={e => setZilnicaForm(p => ({ ...p, introdus_de: e.target.value }))}>
+                  {PERSONAL.map(p => <option key={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowZilnica(false)}>Anulare</button>
+              <button className="btn" style={{ background: '#16a34a', color: 'white', padding: '8px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none' }} onClick={saveZilnica} disabled={saving}>{saving ? '...' : '✓ Salvează'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SĂPTĂMÂNALĂ */}
+      {showSapt && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowSapt(false)}>
+          <div className="modal" style={{ maxWidth: 480 }}>
+            <div className="modal-header" style={{ background: '#d97706', borderRadius: '20px 20px 0 0' }}><div className="modal-title" style={{ color: 'white' }}>📅 Curățenie săptămânală</div><div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>Femeie serviciu · {fmtDate(todayStr())} · Supervizare obligatorie</div></div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: 12, fontSize: 12, color: '#92400e' }}>
+                Toate sălile: Sala 1, Sala 2, Sala 3, Sala 1A
+              </div>
+              <div><label className="form-label">Activitățile efectuate</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {['Spălarea geamurilor și pervazurilor', 'Spălarea pereților cu dezinfectant', 'Dezinfectarea scaunelor', 'Curățenie zone acces limitat (sub frigidere, mese)'].map(act => (
+                    <label key={act} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${saptForm.activitati.includes(act) ? '#d97706' : '#e2e8f0'}`, background: saptForm.activitati.includes(act) ? '#fffbeb' : 'white', cursor: 'pointer', fontSize: 12 }}>
+                      <input type="checkbox" checked={saptForm.activitati.includes(act)}
+                        onChange={e => {
+                          const arr = saptForm.activitati ? saptForm.activitati.split(', ').filter(Boolean) : []
+                          const nou = e.target.checked ? [...arr, act] : arr.filter(a => a !== act)
+                          setSaptForm(p => ({ ...p, activitati: nou.join(', ') }))
+                        }} />
+                      {act}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div><label className="form-label">Soluție dezinfectantă</label>
+                <select className="form-control" value={saptForm.solutie} onChange={e => setSaptForm(p => ({ ...p, solutie: e.target.value }))}>
+                  <option value="">— selectați —</option>
+                  {solutii.map(s => <option key={s.id} value={s.den}>{s.den}{s.concentratie ? ` (${s.concentratie})` : ''}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div><label className="form-label">Introdus de</label>
+                  <select className="form-control" value={saptForm.introdus_de} onChange={e => setSaptForm(p => ({ ...p, introdus_de: e.target.value }))}>
+                    {PERSONAL.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div><label className="form-label">Supervizat de (opțional)</label>
+                  <select className="form-control" value={saptForm.supervizat_de} onChange={e => setSaptForm(p => ({ ...p, supervizat_de: e.target.value }))}>
+                    <option value="">— mai târziu —</option>
+                    {PERSONAL.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowSapt(false)}>Anulare</button>
+              <button className="btn" style={{ background: '#d97706', color: 'white', padding: '8px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none' }} onClick={saveSapt} disabled={saving}>{saving ? '...' : '✓ Salvează'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL F-502/e */}
+      {showF502 && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowF502(false)}>
+          <div className="modal" style={{ maxWidth: 520 }}>
+            <div className="modal-header" style={{ background: '#1a56db', borderRadius: '20px 20px 0 0' }}><div className="modal-title" style={{ color: 'white' }}>📋 F-502/e Curățenie & Dezinfecție</div><div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>Formular tipizat MS RM nr.630/2016</div></div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div><label className="form-label">Sala / Încăperea *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {SALI.map((s, i) => <button key={s} type="button" onClick={() => setF502Form(p => ({ ...p, sala: s }))} style={{ padding: '8px', borderRadius: 10, border: `2px solid ${f502Form.sala === s ? '#1a56db' : '#e2e8f0'}`, background: f502Form.sala === s ? '#eff6ff' : 'white', color: f502Form.sala === s ? '#1e40af' : '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{SALI_SHORT[i]}</button>)}
+                </div>
+              </div>
+              <div><label className="form-label">Soluție dezinfectantă *</label>
+                <select className="form-control" value={f502Form.solutie} onChange={e => setF502Form(p => ({ ...p, solutie: e.target.value }))}>
+                  <option value="">— selectați —</option>
+                  {solutii.map(s => <option key={s.id} value={s.den}>{s.den}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                <div><label className="form-label">Concentrație (%)</label><input type="text" className="form-control" value={f502Form.concentratie} onChange={e => setF502Form(p => ({ ...p, concentratie: e.target.value }))} placeholder="ex. 1%" /></div>
+                <div><label className="form-label">Timp acțiune (min)</label><input type="text" className="form-control" value={f502Form.timp_actiune} onChange={e => setF502Form(p => ({ ...p, timp_actiune: e.target.value }))} placeholder="ex. 30 min" /></div>
+                <div><label className="form-label">Suprafața (m²)</label><input type="number" step="0.1" className="form-control" value={f502Form.suprafata} onChange={e => setF502Form(p => ({ ...p, suprafata: e.target.value }))} placeholder="ex. 25" /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div><label className="form-label">Efectuat de *</label>
+                  <select className="form-control" value={f502Form.efectuat_de} onChange={e => setF502Form(p => ({ ...p, efectuat_de: e.target.value }))}>
+                    {PERSONAL.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div><label className="form-label">Supervizat de (opțional)</label>
+                  <select className="form-control" value={f502Form.supervizat_de} onChange={e => setF502Form(p => ({ ...p, supervizat_de: e.target.value }))}>
+                    <option value="">— mai târziu —</option>
+                    {PERSONAL.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div><label className="form-label">Observații</label><input type="text" className="form-control" value={f502Form.obs} onChange={e => setF502Form(p => ({ ...p, obs: e.target.value }))} /></div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowF502(false)}>Anulare</button>
+              <button className="btn btn-primary" onClick={saveF502} disabled={saving}>{saving ? '...' : '✓ Salvează'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SOLUȚII */}
+      {showSol && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowSol(false)}>
+          <div className="modal" style={{ maxWidth: 460 }}>
+            <div className="modal-header" style={{ background: '#16a34a', borderRadius: '20px 20px 0 0' }}><div className="modal-title" style={{ color: 'white' }}>🧴 Soluții dezinfectante</div></div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {solutii.map(s => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', borderRadius: 10, padding: '10px 14px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{s.den} {s.concentratie && <span style={{ color: '#64748b', fontWeight: 400 }}>({s.concentratie})</span>}</div>
+                    {s.producator && <div style={{ fontSize: 11, color: '#94a3b8' }}>{s.producator}</div>}
+                  </div>
+                  <button onClick={async () => { await supabase.from('solutii').delete().eq('id', s.id); setSolutii(prev => prev.filter(x => x.id !== s.id)) }} style={{ background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: 16 }}>🗑️</button>
+                </div>
+              ))}
+              <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <input type="text" className="form-control" value={nouaSol.den} onChange={e => setNouaSol(p => ({ ...p, den: e.target.value }))} placeholder="Denumire soluție" style={{ gridColumn: '1/-1' }} />
+                <input type="text" className="form-control" value={nouaSol.concentratie} onChange={e => setNouaSol(p => ({ ...p, concentratie: e.target.value }))} placeholder="Concentrație" />
+                <input type="text" className="form-control" value={nouaSol.producator} onChange={e => setNouaSol(p => ({ ...p, producator: e.target.value }))} placeholder="Producător" />
+                <button className="btn btn-primary" style={{ gridColumn: '1/-1' }} onClick={addSolutie}>+ Adaugă soluție</button>
+              </div>
+            </div>
+            <div className="modal-footer"><button className="btn btn-outline" onClick={() => setShowSol(false)}>Închide</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Registre() {
   const [tab, setTab] = useState('temperatura')
   const [loading, setLoading] = useState(true)
@@ -407,49 +855,12 @@ export default function Registre() {
           </div>
         </div>)}
 
-        {/* CURĂȚENIE GENERALĂ */}
-        {tab==='curatenie'&&(<div>
-          <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#166534',fontWeight:500}}>
-            📋 F-502/e MS RM nr.630/2016 · Curățenie generală și dezinfecție · Supervizare obligatorie
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
-            {SALI.map((s,i)=>{
-              const ul=curData.filter(c=>c.sala===s)[0],iA=curSala===s
-              const days=ul?Math.floor((new Date()-new Date(ul.data_ef))/86400000):999
-              const sc=days>7?'#dc2626':days>3?'#d97706':'#16a34a'
-              return <button key={s} onClick={()=>setCurSala(s)} style={{background:iA?'#16a34a':'white',border:`2px solid ${iA?'#16a34a':days>7?'#fecaca':'#e2e8f0'}`,borderRadius:14,padding:14,cursor:'pointer',textAlign:'left',transition:'all 0.2s',boxShadow:iA?'0 6px 20px rgba(22,163,74,0.3)':'0 1px 3px rgba(0,0,0,0.06)',transform:iA?'translateY(-2px)':'none'}}>
-                <div style={{fontSize:18,marginBottom:6}}>🧹</div>
-                <div style={{fontSize:12,fontWeight:700,color:iA?'white':'#1e293b',marginBottom:6}}>{SALI_SHORT[i]}</div>
-                {ul?<div>
-                  <div style={{fontSize:18,fontWeight:800,color:iA?'white':sc}}>{days===0?'Azi':`${days}z`}</div>
-                  <div style={{fontSize:9,color:iA?'rgba(255,255,255,0.7)':sc,fontWeight:600}}>de la ultima curățenie</div>
-                </div>:<div style={{fontSize:11,color:iA?'rgba(255,255,255,0.6)':'#94a3b8'}}>Nicio înreg.</div>}
-              </button>
-            })}
-          </div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-            <div style={{fontSize:14,fontWeight:600}}>{curSala} — Registru F-502/e</div>
-            <div style={{display:'flex',gap:10}}>
-              <button className="btn btn-outline" onClick={()=>setShowSol(true)}>🧴 Soluții ({solutii.length})</button>
-              <button className="btn" style={{background:'#16a34a',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={()=>{setCF(p=>({...p,sala:curSala}));setShowCur(true)}}>✓ Confirmă curățenie</button>
-            </div>
-          </div>
-          <div className="table-wrapper">
-            {curData.filter(d=>d.sala===curSala).length===0?<div style={{padding:40,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:36,marginBottom:12}}>🧹</div><div>Nicio înregistrare</div></div>:(
-            <table><thead><tr><th>Nr.</th><th>Data</th><th>Ora</th><th>Soluție</th><th>Efectuat de</th><th>Supervizat</th></tr></thead><tbody>
-            {curData.filter(d=>d.sala===curSala).map((d,i,a)=>(
-              <tr key={d.id}>
-                <td style={{fontWeight:700,color:'#94a3b8'}}>{a.length-i}</td>
-                <td style={{fontWeight:500}}>{fmtDate(d.data_ef)}</td>
-                <td style={{fontFamily:'monospace'}}>{d.ora||'—'}</td>
-                <td>{d.solutie}</td>
-                <td style={{color:'#64748b'}}>{d.operator}</td>
-                <td>{d.supervizat_la?<span style={{background:'#f0fdf4',color:'#166534',border:'1px solid #bbf7d0',padding:'4px 12px',borderRadius:20,fontSize:11,fontWeight:700}}>✓ {fmtDate(d.supervizat_la)}</span>:<button onClick={()=>supervizCur(d.id)} style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:8,padding:'5px 12px',cursor:'pointer',fontSize:12,fontWeight:600,color:'#475569'}}>Supervizează</button>}</td>
-              </tr>
-            ))}
-            </tbody></table>)}
-          </div>
-        </div>)}
+        {/* CURĂȚENIE GENERALĂ — 3 sub-tab-uri */}
+        {tab==='curatenie'&&(<CuratenieModule
+          solutii={solutii} setSolutii={setSolutii}
+          curData={curData} setCurData={setCurData}
+          today={today} SALI={SALI} SALI_SHORT={SALI_SHORT} PERSONAL={PERSONAL}
+        />)}
 
         {/* CURĂȚENIE FRIGIDER */}
         {tab==='frig_cur'&&(<div>
