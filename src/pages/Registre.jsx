@@ -14,6 +14,52 @@ const FRIGIDERE = [
 const PERSONAL = ['Rotari Ion','Croitoru Tatiana','Jentimir Valeria','Andrian Maria','Antropov Marina']
 const TEMP_MIN = 20, TEMP_MAX = 25, UMID_MIN = 30, UMID_MAX = 50
 
+// ── ECHIPAMENTE COMPLETE (din lista de inventar) ──────────────────────────
+const HOTE = [
+  { id: 'hota-U5379', den: 'Hotă flux laminar Safemate EZ1.8 (Bioair)', sn: 'U5379',           inv: 'ECHMED21326', sala: 'Sala 1' },
+  { id: 'hota-U5380', den: 'Hotă flux laminar Safemate EZ1.8 (Bioair)', sn: 'U5380',           inv: 'ECHMED21325', sala: 'Sala 2' },
+  { id: 'hota-99292', den: 'Hotă flux laminar Laminar-S (LamSystems)',  sn: '221.150.99.292',  inv: 'ECHMED137',   sala: 'Sala 3' },
+  { id: 'hota-00108', den: 'Hotă flux laminar Laminar-S (LamSystems)',  sn: '221.150.00.108',  inv: 'ECHMED898',   sala: 'Sala 1A'},
+]
+
+const AMPLIFICATOARE = [
+  { id: 'amp-rotor',    den: 'Amplificator Rotor-Gene Q6 (QIAGEN)',                     sn: 'R1016141',         inv: 'ECHMED159',   tip: 'Real-Time PCR' },
+  { id: 'amp-A5I842',   den: 'Amplificator DTprime 5M1 (DNA-Tehnology)',                 sn: 'A5I842',           inv: 'ECHMED21320', tip: 'Real-Time PCR' },
+  { id: 'amp-A5JN90',   den: 'Amplificator DTprime 5M1 (DNA-Tehnology)',                 sn: 'A5JN90',           inv: 'ECHMED24229', tip: 'Real-Time PCR' },
+  { id: 'amp-A5J776',   den: 'Amplificator DTprime 5M1 (DNA-Tehnology)',                 sn: 'A5J776',           inv: 'ECHMED22156', tip: 'Real-Time PCR' },
+  { id: 'amp-R5N637',   den: 'Amplificator DTprime II 5M1 (DNA-Tehnology)',               sn: 'R5N637',           inv: 'ECHMED26875', tip: 'Real-Time PCR' },
+  { id: 'amp-QS5',      den: 'Amplificator QuantStudio 5 (ThermoFisher)',                sn: '272526064',        inv: 'ECHMED21335', tip: 'Real-Time PCR' },
+  { id: 'amp-simpli',   den: 'Amplificator SimpliAmp Thermal Cycler (ThermoFisher)',     sn: '2280019044697',    inv: 'ECHMED994',   tip: 'Endpoint PCR'  },
+  { id: 'amp-genexp',   den: 'Sistem GeneXpert XVI (Cepheid)',                           sn: '110009739',        inv: 'ECHMED24401', tip: 'RT-PCR automat'},
+  { id: 'amp-seqst',    den: 'Analizator Genetic SeqStudio (ThermoFisher)',              sn: '232001183',        inv: 'ECHMED989',   tip: 'Secvențiere'   },
+  { id: 'amp-ionS5',    den: 'Sistem secvențiere Ion GeneStudio S5 (ThermoFisher)',      sn: '2774919020333',    inv: 'ECHMED990',   tip: 'NGS'           },
+]
+
+const CENTRIFUGE = [
+  { id: 'cen-0003924', den: 'Centrifugă MIKRO 200R (Hettich)',     sn: '0003924-04-00', inv: 'ECHMED892'   },
+  { id: 'cen-0001467', den: 'Centrifugă MIKRO 220 (Hettich)',      sn: '0001467-10',    inv: 'ECHMED24374' },
+  { id: 'cen-0000802', den: 'Centrifugă MIKRO 220 (Hettich)',      sn: '0000802-09',    inv: 'ECHMED958'   },
+  { id: 'cen-0002431', den: 'Centrifugă MIKRO 185 (Hettich)',      sn: '0002431-02',    inv: 'ECHMED21577' },
+  { id: 'cen-0038501', den: 'Centrifugă EBA 200 (Hettich)',        sn: '0038501-06',    inv: 'ECHMED25211' },
+]
+
+const VORTEXURI = [
+  { id: 'vor-FV2400a', den: 'Mini Centrifugă Vortex Microspin FV-2400 (Biosan)',     sn: '01020118010011', inv: 'ECHMED140'   },
+  { id: 'vor-FV2400b', den: 'Mini Centrifugă Vortex Microspin FV-2400 (Biosan)',     sn: '01020120122927', inv: 'ECHMED21515' },
+  { id: 'vor-FV2400c', den: 'Mini Centrifugă Vortex Microspin FV-2400 (Biosan)',     sn: '01020118050279', inv: 'ECHMED1032'  },
+  { id: 'vor-FV2400d', den: 'Mini Centrifugă Vortex Microspin FV-2400 (Biosan)',     sn: '01020120122917', inv: 'ECHMED21578' },
+  { id: 'vor-FVL240a', den: 'Mini Centrifugă Vortex Combi-Spin FVL-2400N (Biosan)', sn: '01020220010025', inv: 'ECHMED20079' },
+  { id: 'vor-FVL240b', den: 'Mini Centrifugă Vortex Combi-Spin FVL-2400N (Biosan)', sn: '01020220010009', inv: 'ECHMED20080' },
+]
+
+// Toate echipamentele pentru mentenanță preventivă
+const ECH_MENTENTA = [
+  ...AMPLIFICATOARE,
+  ...HOTE,
+  ...CENTRIFUGE,
+  ...VORTEXURI,
+]
+
 const TABS = [
   { id: 'temperatura',  icon: '🌡️', label: 'Temperatură încăperi',     cod: 'PG-6.3/F-01', color: '#1a56db' },
   { id: 'frigidere',    icon: '❄️',  label: 'Frigidere & Congelatoare', cod: 'PG-6.3/F-02', color: '#0891b2' },
@@ -23,6 +69,10 @@ const TABS = [
   { id: 'mediu',        icon: '📊', label: 'Condiții mediu',            cod: 'PG-6.3/F-04', color: '#d97706' },
   { id: 'neautorizati', icon: '🚫', label: 'Persoane neautorizate',     cod: 'PG-6.3/R-01', color: '#dc2626' },
   { id: 'deseuri',      icon: '🗑️', label: 'Deșeuri biologice',        cod: '18.01.03',    color: '#475569' },
+  { id: 'mentenanta',   icon: '🔧', label: 'Mentenanță preventivă',    cod: 'PG-6.3',      color: '#7c3aed' },
+  { id: 'lucru_ech',    icon: '📋', label: 'Evidență lucru echipamente',cod: 'PG-6.3/R-02', color: '#0891b2' },
+  { id: 'bioingineri',  icon: '👨‍🔧', label: 'Chemări bioingineri',      cod: 'PG-6.3/R-03', color: '#16a34a' },
+  { id: 'instructiuni', icon: '📁', label: 'Instrucțiuni echipament',   cod: 'PG-6.5',      color: '#475569' },
 ]
 
 function todayStr() { return new Date().toISOString().slice(0, 10) }
@@ -513,6 +563,31 @@ export default function Registre() {
   const [nouaSol,     setNouaSol]     = useState('')
   const [rapLuna,     setRapLuna]     = useState(todayStr().slice(0,7))
 
+  // ── Mentenanță preventivă ──────────────────────────────────────────────
+  const [mentData,     setMentData]     = useState([])
+  const [showMent,     setShowMent]     = useState(false)
+  const [mentEchSel,   setMentEchSel]   = useState('all')
+  const [mentForm,     setMentForm]     = useState({ ech_id: ECH_MENTENTA[0].id, ech_den: ECH_MENTENTA[0].den, tip: 'zilnic', actiune: '', operator: PERSONAL[0], obs: '', pv_url: '' })
+  const [mentUploadId, setMentUploadId] = useState(null)
+
+  // ── Evidență lucru echipamente ─────────────────────────────────────────
+  const [lucruData,    setLucruData]    = useState([])
+  const [showLucru,    setShowLucru]    = useState(false)
+  const [lucruEchSel,  setLucruEchSel]  = useState('all')
+  const [lucruForm,    setLucruForm]    = useState({ ech_id: '', ech_den: '', ora_start: nowTime(), ora_stop: '', operator: PERSONAL[0], obs: '' })
+
+  // ── Chemări bioingineri ────────────────────────────────────────────────
+  const [bioData,      setBioData]      = useState([])
+  const [showBio,      setShowBio]      = useState(false)
+  const [bioForm,      setBioForm]      = useState({ data: todayStr(), ech_id: '', ech_den: '', problema: '', actiune: '', bioingineer: '', data_inchidere: '', pv_url: '', obs: '' })
+  const [bioUploadId,  setBioUploadId]  = useState(null)
+
+  // ── Instrucțiuni echipament ────────────────────────────────────────────
+  const [instrData,    setInstrData]    = useState([])
+  const [showInstr,    setShowInstr]    = useState(false)
+  const [instrForm,    setInstrForm]    = useState({ ech_id: '', ech_den: '', tip_doc: 'IFU', limba: 'RO', obs: '' })
+  const [instrUploadId,setInstrUploadId]= useState(null)
+
   const [tF, setTF] = useState({ sala: SALI[0], temp: '', umid: '', responsabil: PERSONAL[0] })
   const [fF, setFF] = useState({ frig_id: FRIGIDERE[0].id, temp: '', responsabil: PERSONAL[0] })
   const [uF, setUF] = useState({ sala: SALI[0], interval: '08:00-08:30', specialist: PERSONAL[0] })
@@ -544,7 +619,103 @@ export default function Registre() {
     const lo={};(ul.data||[]).forEach(l=>{lo[l.sala]=parseFloat(l.ore)||0});setUvLampi(lo)
     setCurData(c.data||[]);setFrigCurData(fc.data||[]);setMediuData(m.data||[])
     setNeautData(n.data||[]);setDeseuriData(d.data||[]);setSolutii(s.data||[])
+    // Sesiunea 2
+    const [mt,lu,bi,ins] = await Promise.all([
+      supabase.from('mentenanta_data').select('*').order('ts',{ascending:false}).limit(500),
+      supabase.from('lucru_echipamente').select('*').order('ts',{ascending:false}).limit(500),
+      supabase.from('bioingineri_data').select('*').order('data',{ascending:false}).limit(200),
+      supabase.from('instructiuni_data').select('*').order('ts',{ascending:false}).limit(200),
+    ])
+    setMentData(mt.data||[]);setLucruData(lu.data||[]);setBioData(bi.data||[]);setInstrData(ins.data||[])
     setLoading(false)
+  }
+
+  // ── FUNCȚII MENTENANȚĂ ──────────────────────────────────────────────────
+  async function saveMent() {
+    if(!mentForm.ech_id||!mentForm.actiune){alert('Completați echipamentul și acțiunea!');return}
+    setSaving(true)
+    const rec={id:'MENT-'+Date.now(),data:todayStr(),ora:nowTime(),...mentForm,ts:new Date().toISOString()}
+    const{error}=await supabase.from('mentenanta_data').insert(rec)
+    if(!error){setMentData(p=>[rec,...p]);setShowMent(false);setMentForm(p=>({...p,actiune:'',obs:'',pv_url:''}))}
+    else alert('Eroare: '+error.message)
+    setSaving(false)
+  }
+
+  async function uploadMentPV(id, file) {
+    if(!file)return; setMentUploadId(id)
+    const path=`mentenanta/${id}/${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`
+    const{error}=await supabase.storage.from('documente').upload(path,file,{upsert:true})
+    if(error){alert('Eroare upload: '+error.message);setMentUploadId(null);return}
+    const{data}=supabase.storage.from('documente').getPublicUrl(path)
+    await supabase.from('mentenanta_data').update({pv_url:data.publicUrl}).eq('id',id)
+    setMentData(p=>p.map(m=>m.id===id?{...m,pv_url:data.publicUrl}:m))
+    setMentUploadId(null)
+  }
+
+  // ── FUNCȚII LUCRU ECHIPAMENTE ───────────────────────────────────────────
+  async function saveLucru() {
+    if(!lucruForm.ech_id||!lucruForm.ora_start){alert('Selectați echipamentul!');return}
+    setSaving(true)
+    const rec={id:'LCR-'+Date.now(),data:todayStr(),...lucruForm,ts:new Date().toISOString()}
+    const{error}=await supabase.from('lucru_echipamente').insert(rec)
+    if(!error){setLucruData(p=>[rec,...p]);setShowLucru(false);setLucruForm(p=>({...p,ora_start:nowTime(),ora_stop:'',obs:''}))}
+    else alert('Eroare: '+error.message)
+    setSaving(false)
+  }
+
+  async function inchideLucru(id) {
+    const ora=nowTime()
+    await supabase.from('lucru_echipamente').update({ora_stop:ora}).eq('id',id)
+    setLucruData(p=>p.map(l=>l.id===id?{...l,ora_stop:ora}:l))
+  }
+
+  // ── FUNCȚII BIOINGINERI ─────────────────────────────────────────────────
+  async function saveBio() {
+    if(!bioForm.ech_id||!bioForm.problema){alert('Completați echipamentul și problema!');return}
+    setSaving(true)
+    const rec={id:'BIO-'+Date.now(),...bioForm,status:'deschis',ts:new Date().toISOString()}
+    const{error}=await supabase.from('bioingineri_data').insert(rec)
+    if(!error){
+      setBioData(p=>[rec,...p]);setShowBio(false)
+      setBioForm(p=>({...p,ech_id:'',ech_den:'',problema:'',actiune:'',bioingineer:'',data_inchidere:'',pv_url:'',obs:''}))
+      // Alertă +1zi
+      const d1=new Date();d1.setDate(d1.getDate()+1)
+      const key='bio_alert_'+rec.id;localStorage.setItem(key,d1.toISOString().slice(0,10))
+    }
+    else alert('Eroare: '+error.message)
+    setSaving(false)
+  }
+
+  async function inchideBio(id, actiune, pv_url) {
+    const updates={status:'inchis',actiune:actiune||'Rezolvat',data_inchidere:todayStr(),pv_url:pv_url||''}
+    await supabase.from('bioingineri_data').update(updates).eq('id',id)
+    setBioData(p=>p.map(b=>b.id===id?{...b,...updates}:b))
+  }
+
+  async function uploadBioPV(id, file) {
+    if(!file)return; setBioUploadId(id)
+    const path=`bioingineri/${id}/${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`
+    const{error}=await supabase.storage.from('documente').upload(path,file,{upsert:true})
+    if(error){alert('Eroare: '+error.message);setBioUploadId(null);return}
+    const{data}=supabase.storage.from('documente').getPublicUrl(path)
+    await supabase.from('bioingineri_data').update({pv_url:data.publicUrl}).eq('id',id)
+    setBioData(p=>p.map(b=>b.id===id?{...b,pv_url:data.publicUrl}:b))
+    setBioUploadId(null)
+  }
+
+  // ── FUNCȚII INSTRUCȚIUNI ────────────────────────────────────────────────
+  async function uploadInstr(file, echId, echDen, tipDoc, limba, obs) {
+    if(!file||!echId){alert('Selectați echipamentul și fișierul!');return}
+    setInstrUploadId(echId)
+    const path=`instructiuni/${echId}/${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`
+    const{error}=await supabase.storage.from('documente').upload(path,file,{upsert:true})
+    if(error){alert('Eroare upload: '+error.message);setInstrUploadId(null);return}
+    const{data}=supabase.storage.from('documente').getPublicUrl(path)
+    const rec={id:'INS-'+Date.now(),ech_id:echId,ech_den:echDen,tip_doc:tipDoc,limba,obs,fisier_url:data.publicUrl,fisier_name:file.name,ts:new Date().toISOString()}
+    await supabase.from('instructiuni_data').insert(rec)
+    setInstrData(p=>[rec,...p])
+    setInstrUploadId(null)
+    setShowInstr(false)
   }
 
   async function saveTemp() {
@@ -1285,6 +1456,474 @@ export default function Registre() {
           <div className="modal-footer">
             <button className="btn btn-outline" onClick={()=>setShowRapDes(false)}>Închide</button>
             <button className="btn btn-primary" onClick={()=>genRapDeseu(rapLuna)}>🖨️ Printează raport</button>
+          </div>
+        </div>
+      </div>}
+
+
+      {/* ══ MENTENANȚĂ PREVENTIVĂ ══════════════════════════════════════════ */}
+      {tab==='mentenanta'&&(<div>
+        <div style={{background:'#f5f3ff',border:'1px solid #ddd6fe',borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#6d28d9',fontWeight:500}}>
+          🔧 Mentenanță preventivă echipamente · Zilnică (L–V) · Săptămânală · Anuală · Upload PV
+        </div>
+
+        {/* Filtre tip echipament */}
+        <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+          {[{id:'all',label:'Toate'},{id:'amp',label:'Amplificatoare'},{id:'hota',label:'Hote'},{id:'cen',label:'Centrifuge'},{id:'vor',label:'Vortex'}].map(f=>(
+            <button key={f.id} onClick={()=>setMentEchSel(f.id)} style={{padding:'6px 14px',borderRadius:8,border:`2px solid ${mentEchSel===f.id?'#7c3aed':'#e2e8f0'}`,background:mentEchSel===f.id?'#7c3aed':'white',color:mentEchSel===f.id?'white':'#64748b',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+              {f.label}
+            </button>
+          ))}
+          <button className="btn" style={{marginLeft:'auto',background:'#7c3aed',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={()=>setShowMent(true)}>+ Înregistrare mentenanță</button>
+        </div>
+
+        {/* Stats */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
+          {[
+            {label:'Total înregistrări',val:mentData.length,color:'#7c3aed',bg:'#f5f3ff'},
+            {label:'Zilnice (azi)',val:mentData.filter(m=>m.data===today&&m.tip==='zilnic').length,color:'#16a34a',bg:'#f0fdf4'},
+            {label:'Săptămânale (săpt.)',val:mentData.filter(m=>{const sw=new Date();sw.setDate(sw.getDate()-sw.getDay()+1);sw.setHours(0,0,0,0);return new Date(m.data)>=sw&&m.tip==='saptamanal'}).length,color:'#d97706',bg:'#fffbeb'},
+            {label:'Cu PV atașat',val:mentData.filter(m=>m.pv_url).length,color:'#1a56db',bg:'#eff6ff'},
+          ].map((s,i)=>(
+            <div key={i} style={{background:'white',border:`1px solid ${s.bg==='#f5f3ff'?'#ddd6fe':s.bg==='#f0fdf4'?'#bbf7d0':s.bg==='#fffbeb'?'#fde68a':'#bfdbfe'}`,borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12}}>
+              <div><div style={{fontSize:24,fontWeight:800,color:s.color}}>{s.val}</div><div style={{fontSize:11,color:'#94a3b8',fontWeight:600,marginTop:2}}>{s.label}</div></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="table-wrapper">
+          {mentData.filter(m=>{
+            if(mentEchSel==='amp') return AMPLIFICATOARE.some(a=>a.id===m.ech_id)
+            if(mentEchSel==='hota') return HOTE.some(h=>h.id===m.ech_id)
+            if(mentEchSel==='cen') return CENTRIFUGE.some(c=>c.id===m.ech_id)
+            if(mentEchSel==='vor') return VORTEXURI.some(v=>v.id===m.ech_id)
+            return true
+          }).length===0?(
+            <div style={{padding:40,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:36,marginBottom:12}}>🔧</div><div>Nicio înregistrare</div></div>
+          ):(
+          <table><thead><tr><th>Data</th><th>Ora</th><th>Echipament</th><th>Tip</th><th>Acțiunea</th><th>Operator</th><th>PV</th><th>Obs.</th></tr></thead><tbody>
+          {mentData.filter(m=>{
+            if(mentEchSel==='amp') return AMPLIFICATOARE.some(a=>a.id===m.ech_id)
+            if(mentEchSel==='hota') return HOTE.some(h=>h.id===m.ech_id)
+            if(mentEchSel==='cen') return CENTRIFUGE.some(c=>c.id===m.ech_id)
+            if(mentEchSel==='vor') return VORTEXURI.some(v=>v.id===m.ech_id)
+            return true
+          }).slice(0,60).map(m=>(
+            <tr key={m.id}>
+              <td style={{fontWeight:500}}>{fmtDate(m.data)}</td>
+              <td style={{fontFamily:'monospace',color:'#64748b'}}>{m.ora}</td>
+              <td style={{fontSize:12,fontWeight:500}}>{m.ech_den?.split('(')[0]?.trim()}</td>
+              <td><span style={{background:m.tip==='zilnic'?'#f0fdf4':m.tip==='saptamanal'?'#fffbeb':m.tip==='anual'?'#eff6ff':'#f5f3ff',color:m.tip==='zilnic'?'#166534':m.tip==='saptamanal'?'#92400e':m.tip==='anual'?'#1e40af':'#6d28d9',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700}}>{m.tip}</span></td>
+              <td style={{fontSize:12}}>{m.actiune}</td>
+              <td style={{color:'#64748b',fontSize:12}}>{m.operator}</td>
+              <td>{m.pv_url?<a href={m.pv_url} target="_blank" rel="noreferrer" style={{background:'#eff6ff',color:'#1a56db',border:'1px solid #bfdbfe',padding:'3px 10px',borderRadius:8,fontSize:11,fontWeight:600,textDecoration:'none'}}>📄 PV</a>:(
+                <label style={{background:'#f8fafc',border:'1px dashed #e2e8f0',color:'#94a3b8',padding:'3px 10px',borderRadius:8,fontSize:11,cursor:'pointer',display:'inline-block'}}>
+                  {mentUploadId===m.id?'⏳...':'📎 Upload'}
+                  <input type="file" accept=".pdf" style={{display:'none'}} onChange={e=>uploadMentPV(m.id,e.target.files[0])}/>
+                </label>
+              )}</td>
+              <td style={{color:'#94a3b8',fontSize:11}}>{m.obs||'—'}</td>
+            </tr>
+          ))}
+          </tbody></table>)}
+        </div>
+      </div>)}
+
+      {/* ══ EVIDENȚĂ LUCRU ECHIPAMENTE ════════════════════════════════════ */}
+      {tab==='lucru_ech'&&(<div>
+        <div style={{background:'#ecfeff',border:'1px solid #a5f3fc',borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#0e7490',fontWeight:500}}>
+          📋 Registru lucru echipamente · Hote flux laminar + Amplificatoare · PG-6.3/R-02
+        </div>
+
+        {/* Filtre */}
+        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+          {[{id:'all',label:'Toate'},{id:'hota',label:'🌬️ Hote'},{id:'amp',label:'🔬 Amplificatoare'}].map(f=>(
+            <button key={f.id} onClick={()=>setLucruEchSel(f.id)} style={{padding:'6px 14px',borderRadius:8,border:`2px solid ${lucruEchSel===f.id?'#0891b2':'#e2e8f0'}`,background:lucruEchSel===f.id?'#0891b2':'white',color:lucruEchSel===f.id?'white':'#64748b',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+              {f.label}
+            </button>
+          ))}
+          <button className="btn" style={{marginLeft:'auto',background:'#0891b2',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={()=>{setLucruForm(p=>({...p,ech_id:'',ech_den:'',ora_start:nowTime(),ora_stop:'',obs:''}));setShowLucru(true)}}>+ Deschide sesiune lucru</button>
+        </div>
+
+        {/* Sesiuni deschise */}
+        {lucruData.filter(l=>!l.ora_stop).length>0&&(
+          <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:12,padding:'14px 16px',marginBottom:16}}>
+            <div style={{fontSize:12,fontWeight:700,color:'#92400e',marginBottom:10}}>⚠ Sesiuni deschise (echipamente în lucru):</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+              {lucruData.filter(l=>!l.ora_stop).map(l=>(
+                <div key={l.id} style={{background:'white',border:'1px solid #fde68a',borderRadius:10,padding:'8px 14px',display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{fontSize:12,fontWeight:600}}>{l.ech_den?.split('(')[0]?.trim()}</span>
+                  <span style={{fontSize:11,color:'#92400e',fontFamily:'monospace'}}>start {l.ora_start}</span>
+                  <button onClick={()=>inchideLucru(l.id)} style={{background:'#16a34a',color:'white',border:'none',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontSize:11,fontWeight:700}}>✓ Stop</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="table-wrapper">
+          {lucruData.filter(l=>{
+            if(lucruEchSel==='hota') return HOTE.some(h=>h.id===l.ech_id)
+            if(lucruEchSel==='amp') return [...AMPLIFICATOARE].some(a=>a.id===l.ech_id)
+            return true
+          }).length===0?(
+            <div style={{padding:40,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:36,marginBottom:12}}>📋</div><div>Nicio sesiune înregistrată</div></div>
+          ):(
+          <table><thead><tr><th>Data</th><th>Echipament</th><th>SN</th><th>Ora start</th><th>Ora stop</th><th>Durata</th><th>Operator</th><th>Status</th></tr></thead><tbody>
+          {lucruData.filter(l=>{
+            if(lucruEchSel==='hota') return HOTE.some(h=>h.id===l.ech_id)
+            if(lucruEchSel==='amp') return [...AMPLIFICATOARE].some(a=>a.id===l.ech_id)
+            return true
+          }).slice(0,80).map(l=>{
+            const ech=ECH_MENTENTA.find(e=>e.id===l.ech_id)
+            const durata=l.ora_stop&&l.ora_start?`${((new Date('2000-01-01T'+l.ora_stop)-new Date('2000-01-01T'+l.ora_start))/3600000).toFixed(1)}h`:'—'
+            return(
+            <tr key={l.id} style={{background:!l.ora_stop?'#fffbeb':''}}>
+              <td style={{fontWeight:500}}>{fmtDate(l.data)}</td>
+              <td style={{fontSize:12,fontWeight:500}}>{l.ech_den?.split('(')[0]?.trim()}</td>
+              <td style={{fontFamily:'monospace',fontSize:11,color:'#64748b'}}>{ech?.sn||'—'}</td>
+              <td style={{fontFamily:'monospace',fontWeight:600,color:'#16a34a'}}>{l.ora_start}</td>
+              <td>{l.ora_stop?<span style={{fontFamily:'monospace',fontWeight:600,color:'#dc2626'}}>{l.ora_stop}</span>:<button onClick={()=>inchideLucru(l.id)} style={{background:'#fde68a',border:'1px solid #d97706',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontSize:11,fontWeight:700,color:'#92400e'}}>⏱ Stop</button>}</td>
+              <td style={{fontWeight:600,color:l.ora_stop?'#1e293b':'#d97706'}}>{durata}</td>
+              <td style={{color:'#64748b',fontSize:12}}>{l.operator}</td>
+              <td><span style={{background:!l.ora_stop?'#fffbeb':'#f0fdf4',color:!l.ora_stop?'#92400e':'#166534',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700}}>{!l.ora_stop?'⏳ Activ':'✓ Încheiat'}</span></td>
+            </tr>
+          )})}
+          </tbody></table>)}
+        </div>
+      </div>)}
+
+      {/* ══ CHEMĂRI BIOINGINERI ═══════════════════════════════════════════ */}
+      {tab==='bioingineri'&&(<div>
+        <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#166534',fontWeight:500}}>
+          👨‍🔧 Registru chemări bioinginer intern · PG-6.3/R-03 · Alertă automată +1 zi · Upload PV
+        </div>
+
+        {/* Stats */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:20}}>
+          <div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:12,padding:'14px 16px'}}>
+            <div style={{fontSize:24,fontWeight:800,color:'#1a56db'}}>{bioData.length}</div>
+            <div style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>Total chemări</div>
+          </div>
+          <div style={{background:bioData.filter(b=>b.status==='deschis').length>0?'#fef2f2':'#f0fdf4',border:`1px solid ${bioData.filter(b=>b.status==='deschis').length>0?'#fecaca':'#bbf7d0'}`,borderRadius:12,padding:'14px 16px'}}>
+            <div style={{fontSize:24,fontWeight:800,color:bioData.filter(b=>b.status==='deschis').length>0?'#dc2626':'#16a34a'}}>{bioData.filter(b=>b.status==='deschis').length}</div>
+            <div style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>Deschise (nerezolvate)</div>
+          </div>
+          <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'14px 16px'}}>
+            <div style={{fontSize:24,fontWeight:800,color:'#16a34a'}}>{bioData.filter(b=>b.status==='inchis').length}</div>
+            <div style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>Rezolvate</div>
+          </div>
+        </div>
+
+        <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
+          <button className="btn" style={{background:'#16a34a',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={()=>setShowBio(true)}>+ Chemare bioinginer</button>
+        </div>
+
+        <div className="table-wrapper">
+          {bioData.length===0?(
+            <div style={{padding:40,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:36,marginBottom:12}}>👨‍🔧</div><div>Nicio chemare înregistrată</div></div>
+          ):(
+          <table><thead><tr><th>Data chemare</th><th>Echipament</th><th>Problema</th><th>Bioinginer</th><th>Acțiunea</th><th>Data rezolvare</th><th>PV</th><th>Status</th></tr></thead><tbody>
+          {bioData.slice(0,60).map(b=>(
+            <tr key={b.id} style={{background:b.status==='deschis'?'#fef2f2':''}}>
+              <td style={{fontWeight:500}}>{fmtDate(b.data)}</td>
+              <td style={{fontSize:12,fontWeight:500}}>{b.ech_den?.split('(')[0]?.trim()||'—'}</td>
+              <td style={{fontSize:12}}>{b.problema}</td>
+              <td style={{color:'#64748b',fontSize:12}}>{b.bioingineer||'—'}</td>
+              <td style={{fontSize:12,color:'#16a34a'}}>{b.actiune||'—'}</td>
+              <td style={{color:'#64748b'}}>{b.data_inchidere?fmtDate(b.data_inchidere):'—'}</td>
+              <td>{b.pv_url?<a href={b.pv_url} target="_blank" rel="noreferrer" style={{background:'#eff6ff',color:'#1a56db',border:'1px solid #bfdbfe',padding:'3px 10px',borderRadius:8,fontSize:11,fontWeight:600,textDecoration:'none'}}>📄 PV</a>:(
+                b.status==='deschis'?<label style={{background:'#f8fafc',border:'1px dashed #e2e8f0',color:'#94a3b8',padding:'3px 10px',borderRadius:8,fontSize:11,cursor:'pointer',display:'inline-block'}}>
+                  {bioUploadId===b.id?'⏳...':'📎 Upload'}
+                  <input type="file" accept=".pdf" style={{display:'none'}} onChange={e=>uploadBioPV(b.id,e.target.files[0])}/>
+                </label>:'—'
+              )}</td>
+              <td>{b.status==='deschis'?(<div style={{display:'flex',gap:6,alignItems:'center'}}>
+                <span style={{background:'#fef2f2',color:'#991b1b',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700}}>✗ Deschisă</span>
+                <button onClick={()=>{const act=prompt('Acțiunea efectuată de bioinginer:');if(act)inchideBio(b.id,act,b.pv_url)}} style={{background:'#16a34a',color:'white',border:'none',borderRadius:8,padding:'3px 8px',cursor:'pointer',fontSize:10,fontWeight:700}}>✓ Închide</button>
+              </div>):<span style={{background:'#f0fdf4',color:'#166534',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700}}>✓ Rezolvată</span>}</td>
+            </tr>
+          ))}
+          </tbody></table>)}
+        </div>
+      </div>)}
+
+      {/* ══ INSTRUCȚIUNI ECHIPAMENT ════════════════════════════════════════ */}
+      {tab==='instructiuni'&&(<div>
+        <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:13,color:'#475569',fontWeight:500}}>
+          📁 Instrucțiuni echipamente · IFU · Manuale · Certificate · PG-6.5
+        </div>
+
+        <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
+          <button className="btn" style={{background:'#475569',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={()=>{setInstrForm({ech_id:'',ech_den:'',tip_doc:'IFU',limba:'RO',obs:''});setShowInstr(true)}}>+ Adaugă instrucțiune</button>
+        </div>
+
+        {/* Grid echipamente cu documente */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
+          {ECH_MENTENTA.map(ech=>{
+            const docs=instrData.filter(d=>d.ech_id===ech.id)
+            return(
+            <div key={ech.id} style={{background:'white',borderRadius:14,border:`1px solid ${docs.length>0?'#bbf7d0':'#e2e8f0'}`,padding:16,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:600,color:'#1e293b',lineHeight:1.3}}>{ech.den?.split('(')[0]?.trim()}</div>
+                  <div style={{fontSize:10,fontFamily:'monospace',color:'#94a3b8',marginTop:2}}>SN:{ech.sn} · {ech.inv}</div>
+                </div>
+                <span style={{background:docs.length>0?'#f0fdf4':'#fef2f2',color:docs.length>0?'#166534':'#991b1b',border:`1px solid ${docs.length>0?'#bbf7d0':'#fecaca'}`,padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,flexShrink:0,marginLeft:8}}>{docs.length} doc.</span>
+              </div>
+              {docs.length===0?(
+                <div style={{fontSize:12,color:'#94a3b8',fontStyle:'italic',marginBottom:10}}>Nicio instrucțiune atașată</div>
+              ):(
+                <div style={{display:'flex',flexDirection:'column',gap:6,marginBottom:10}}>
+                  {docs.map(d=>(
+                    <div key={d.id} style={{display:'flex',alignItems:'center',gap:8,background:'#f8fafc',borderRadius:8,padding:'6px 10px'}}>
+                      <span style={{background:'#eff6ff',color:'#1a56db',padding:'2px 8px',borderRadius:6,fontSize:10,fontWeight:700}}>{d.tip_doc}</span>
+                      <span style={{fontSize:11,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.fisier_name||d.ech_den}</span>
+                      <a href={d.fisier_url} target="_blank" rel="noreferrer" style={{background:'#1a56db',color:'white',padding:'2px 8px',borderRadius:6,fontSize:10,fontWeight:700,textDecoration:'none'}}>↗</a>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{display:'flex',alignItems:'center',gap:6,background:docs.length>0?'#f0fdf4':'#f8fafc',border:`1px dashed ${docs.length>0?'#bbf7d0':'#e2e8f0'}`,borderRadius:8,padding:'6px 12px',cursor:'pointer',fontSize:12,color:docs.length>0?'#16a34a':'#94a3b8'}}>
+                {instrUploadId===ech.id?'⏳ Se încarcă...':'📎 Adaugă document'}
+                <input type="file" accept=".pdf,.doc,.docx" style={{display:'none'}} onChange={e=>{if(e.target.files[0])uploadInstr(e.target.files[0],ech.id,ech.den,'IFU','RO','')}}/>
+              </label>
+            </div>
+          )})}
+        </div>
+      </div>)}
+
+      {/* MODAL MENTENANȚĂ */}
+      {showMent&&<div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowMent(false)}>
+        <div className="modal" style={{maxWidth:520}}>
+          <div className="modal-header" style={{background:'#7c3aed',borderRadius:'20px 20px 0 0'}}>
+            <div className="modal-title" style={{color:'white'}}>🔧 Înregistrare mentenanță preventivă</div>
+          </div>
+          <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div>
+              <label className="form-label">Tip mentenanță</label>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                {[{id:'zilnic',label:'Zilnică',color:'#16a34a'},{id:'saptamanal',label:'Săptămânală',color:'#d97706'},{id:'anual',label:'Anuală',color:'#1a56db'},{id:'interventie',label:'Intervenție',color:'#dc2626'}].map(t=>(
+                  <button key={t.id} type="button" onClick={()=>setMentForm(p=>({...p,tip:t.id}))} style={{padding:'8px',borderRadius:10,border:`2px solid ${mentForm.tip===t.id?t.color:'#e2e8f0'}`,background:mentForm.tip===t.id?t.color:'white',color:mentForm.tip===t.id?'white':'#64748b',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="form-label">Echipament</label>
+              <select className="form-control" value={mentForm.ech_id} onChange={e=>{const ech=ECH_MENTENTA.find(x=>x.id===e.target.value);setMentForm(p=>({...p,ech_id:e.target.value,ech_den:ech?.den||''}));}}>
+                <option value="">— selectați —</option>
+                <optgroup label="🌬️ Hote flux laminar">
+                  {HOTE.map(h=><option key={h.id} value={h.id}>{h.den.split('(')[0].trim()} SN:{h.sn} ({h.sala})</option>)}
+                </optgroup>
+                <optgroup label="🔬 Amplificatoare">
+                  {AMPLIFICATOARE.map(a=><option key={a.id} value={a.id}>{a.den.split('(')[0].trim()} SN:{a.sn}</option>)}
+                </optgroup>
+                <optgroup label="⚗️ Centrifuge">
+                  {CENTRIFUGE.map(c=><option key={c.id} value={c.id}>{c.den.split('(')[0].trim()} SN:{c.sn}</option>)}
+                </optgroup>
+                <optgroup label="🔄 Vortex">
+                  {VORTEXURI.map(v=><option key={v.id} value={v.id}>{v.den.split('(')[0].trim()} SN:{v.sn}</option>)}
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Acțiunea efectuată *</label>
+              {mentForm.tip==='zilnic'?(
+                <select className="form-control" value={mentForm.actiune} onChange={e=>setMentForm(p=>({...p,actiune:e.target.value}))}>
+                  <option value="">— selectați —</option>
+                  <optgroup label="Inspecție vizuală">
+                    <option>Inspecție vizuală — fără defecte observate</option>
+                    <option>Inspecție vizuală — defecte observate (descrieți în obs.)</option>
+                  </optgroup>
+                  <optgroup label="Curățenie (hote)">
+                    <option>Prelucrare cu soluție dezinfectantă după lucru</option>
+                    <option>Conectare lampă UV interior (30 min după lucru)</option>
+                  </optgroup>
+                </select>
+              ):(
+                mentForm.tip==='saptamanal'?(
+                  <select className="form-control" value={mentForm.actiune} onChange={e=>setMentForm(p=>({...p,actiune:e.target.value}))}>
+                    <option value="">— selectați —</option>
+                    <option>Dezinfectare cu apă oxigenată 6%</option>
+                    <option>Clătirea suprafețelor cu apă distilată</option>
+                    <option>Dezinfectare cu soluție dezinfectantă</option>
+                    <option>Verificare funcționalitate completă</option>
+                  </select>
+                ):(
+                  <input type="text" className="form-control" value={mentForm.actiune} onChange={e=>setMentForm(p=>({...p,actiune:e.target.value}))} placeholder="Descrieți acțiunea efectuată"/>
+                )
+              )}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+              <div>
+                <label className="form-label">Operator</label>
+                <select className="form-control" value={mentForm.operator} onChange={e=>setMentForm(p=>({...p,operator:e.target.value}))}>
+                  {PERSONAL.map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Observații</label>
+                <input type="text" className="form-control" value={mentForm.obs} onChange={e=>setMentForm(p=>({...p,obs:e.target.value}))}/>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-outline" onClick={()=>setShowMent(false)}>Anulare</button>
+            <button className="btn" style={{background:'#7c3aed',color:'white',padding:'8px 20px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={saveMent} disabled={saving}>{saving?'...':'✓ Salvează'}</button>
+          </div>
+        </div>
+      </div>}
+
+      {/* MODAL LUCRU ECHIPAMENTE */}
+      {showLucru&&<div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowLucru(false)}>
+        <div className="modal" style={{maxWidth:460}}>
+          <div className="modal-header" style={{background:'#0891b2',borderRadius:'20px 20px 0 0'}}>
+            <div className="modal-title" style={{color:'white'}}>📋 Deschidere sesiune lucru echipament</div>
+          </div>
+          <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div>
+              <label className="form-label">Echipament</label>
+              <select className="form-control" value={lucruForm.ech_id} onChange={e=>{const ech=[...HOTE,...AMPLIFICATOARE].find(x=>x.id===e.target.value);setLucruForm(p=>({...p,ech_id:e.target.value,ech_den:ech?.den||''}));}}>
+                <option value="">— selectați —</option>
+                <optgroup label="🌬️ Hote flux laminar">
+                  {HOTE.map(h=><option key={h.id} value={h.id}>{h.den.split('(')[0].trim()} SN:{h.sn} ({h.sala})</option>)}
+                </optgroup>
+                <optgroup label="🔬 Amplificatoare">
+                  {AMPLIFICATOARE.map(a=><option key={a.id} value={a.id}>{a.den.split('(')[0].trim()} SN:{a.sn}</option>)}
+                </optgroup>
+              </select>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+              <div>
+                <label className="form-label">Ora start</label>
+                <input type="time" className="form-control" value={lucruForm.ora_start} onChange={e=>setLucruForm(p=>({...p,ora_start:e.target.value}))} style={{fontFamily:'monospace',fontWeight:700,fontSize:18,textAlign:'center'}}/>
+              </div>
+              <div>
+                <label className="form-label">Operator</label>
+                <select className="form-control" value={lucruForm.operator} onChange={e=>setLucruForm(p=>({...p,operator:e.target.value}))}>
+                  {PERSONAL.map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="form-label">Observații (opțional)</label>
+              <input type="text" className="form-control" value={lucruForm.obs} onChange={e=>setLucruForm(p=>({...p,obs:e.target.value}))} placeholder="ex. Procesare serii IST"/>
+            </div>
+            <div style={{background:'#ecfeff',border:'1px solid #a5f3fc',borderRadius:10,padding:12,fontSize:12,color:'#0e7490'}}>
+              ℹ️ La finalizare, apăsați butonul <strong>⏱ Stop</strong> din lista de sesiuni active pentru a înregistra ora de oprire.
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-outline" onClick={()=>setShowLucru(false)}>Anulare</button>
+            <button className="btn" style={{background:'#0891b2',color:'white',padding:'8px 20px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={saveLucru} disabled={saving}>{saving?'...':'▶ Start'}</button>
+          </div>
+        </div>
+      </div>}
+
+      {/* MODAL BIOINGINER */}
+      {showBio&&<div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowBio(false)}>
+        <div className="modal" style={{maxWidth:500}}>
+          <div className="modal-header" style={{background:'#16a34a',borderRadius:'20px 20px 0 0'}}>
+            <div className="modal-title" style={{color:'white'}}>👨‍🔧 Chemare bioinginer</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.75)'}}>Alertă automată +1 zi după înregistrare</div>
+          </div>
+          <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div>
+              <label className="form-label">Echipament *</label>
+              <select className="form-control" value={bioForm.ech_id} onChange={e=>{const ech=ECH_MENTENTA.find(x=>x.id===e.target.value);setBioForm(p=>({...p,ech_id:e.target.value,ech_den:ech?.den||''}));}}>
+                <option value="">— selectați —</option>
+                <optgroup label="🌬️ Hote">
+                  {HOTE.map(h=><option key={h.id} value={h.id}>{h.den.split('(')[0].trim()} SN:{h.sn}</option>)}
+                </optgroup>
+                <optgroup label="🔬 Amplificatoare">
+                  {AMPLIFICATOARE.map(a=><option key={a.id} value={a.id}>{a.den.split('(')[0].trim()} SN:{a.sn}</option>)}
+                </optgroup>
+                <optgroup label="⚗️ Centrifuge">
+                  {CENTRIFUGE.map(c=><option key={c.id} value={c.id}>{c.den.split('(')[0].trim()} SN:{c.sn}</option>)}
+                </optgroup>
+                <optgroup label="🔄 Vortex">
+                  {VORTEXURI.map(v=><option key={v.id} value={v.id}>{v.den.split('(')[0].trim()} SN:{v.sn}</option>)}
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Problema semnalată *</label>
+              <textarea className="form-control" rows={3} value={bioForm.problema} onChange={e=>setBioForm(p=>({...p,problema:e.target.value}))} placeholder="Descrieți defecțiunea sau problema observată..." style={{resize:'none'}}/>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+              <div>
+                <label className="form-label">Data chemării</label>
+                <input type="date" className="form-control" value={bioForm.data} onChange={e=>setBioForm(p=>({...p,data:e.target.value}))}/>
+              </div>
+              <div>
+                <label className="form-label">Bioinginer (opțional)</label>
+                <input type="text" className="form-control" value={bioForm.bioingineer} onChange={e=>setBioForm(p=>({...p,bioingineer:e.target.value}))} placeholder="Numele bioinginierului"/>
+              </div>
+            </div>
+            <div>
+              <label className="form-label">Observații</label>
+              <input type="text" className="form-control" value={bioForm.obs} onChange={e=>setBioForm(p=>({...p,obs:e.target.value}))}/>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-outline" onClick={()=>setShowBio(false)}>Anulare</button>
+            <button className="btn" style={{background:'#16a34a',color:'white',padding:'8px 20px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'none'}} onClick={saveBio} disabled={saving}>{saving?'...':'✓ Înregistrează chemarea'}</button>
+          </div>
+        </div>
+      </div>}
+
+      {/* MODAL INSTRUCȚIUNI */}
+      {showInstr&&<div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowInstr(false)}>
+        <div className="modal" style={{maxWidth:460}}>
+          <div className="modal-header" style={{background:'#475569',borderRadius:'20px 20px 0 0'}}>
+            <div className="modal-title" style={{color:'white'}}>📁 Adaugă instrucțiune echipament</div>
+          </div>
+          <div className="modal-body" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div>
+              <label className="form-label">Echipament</label>
+              <select className="form-control" value={instrForm.ech_id} onChange={e=>{const ech=ECH_MENTENTA.find(x=>x.id===e.target.value);setInstrForm(p=>({...p,ech_id:e.target.value,ech_den:ech?.den||''}));}}>
+                <option value="">— selectați —</option>
+                {ECH_MENTENTA.map(e=><option key={e.id} value={e.id}>{e.den.split('(')[0].trim()} SN:{e.sn}</option>)}
+              </select>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+              <div>
+                <label className="form-label">Tip document</label>
+                <select className="form-control" value={instrForm.tip_doc} onChange={e=>setInstrForm(p=>({...p,tip_doc:e.target.value}))}>
+                  <option value="IFU">IFU (Instructions For Use)</option>
+                  <option value="Manual">Manual utilizare</option>
+                  <option value="Fisa tehnica">Fișă tehnică</option>
+                  <option value="Certificat">Certificat</option>
+                  <option value="Alt document">Alt document</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Limbă</label>
+                <select className="form-control" value={instrForm.limba} onChange={e=>setInstrForm(p=>({...p,limba:e.target.value}))}>
+                  <option value="RO">Română</option>
+                  <option value="EN">Engleză</option>
+                  <option value="RU">Rusă</option>
+                  <option value="DE">Germană</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="form-label">Observații</label>
+              <input type="text" className="form-control" value={instrForm.obs} onChange={e=>setInstrForm(p=>({...p,obs:e.target.value}))} placeholder="ex. Versiunea 2024, pagini relevante..."/>
+            </div>
+            <div>
+              <label className="form-label">Fișier (PDF, DOC)</label>
+              <label style={{display:'flex',alignItems:'center',gap:10,background:'#f8fafc',border:'2px dashed #e2e8f0',borderRadius:10,padding:'16px',cursor:'pointer',justifyContent:'center'}}>
+                <span style={{fontSize:24}}>📎</span>
+                <span style={{fontSize:13,color:'#64748b'}}>{instrUploadId?'⏳ Se încarcă...':'Selectați fișierul pentru upload'}</span>
+                <input type="file" accept=".pdf,.doc,.docx" style={{display:'none'}} onChange={e=>{if(e.target.files[0])uploadInstr(e.target.files[0],instrForm.ech_id,instrForm.ech_den,instrForm.tip_doc,instrForm.limba,instrForm.obs)}}/>
+              </label>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-outline" onClick={()=>setShowInstr(false)}>Anulare</button>
           </div>
         </div>
       </div>}
