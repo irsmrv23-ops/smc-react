@@ -58,6 +58,7 @@ export default function Stocuri() {
   const [stoc, setStoc] = useState([])
   const [miscari, setMiscari] = useState([])
   const [metro, setMetro] = useState([])
+  const [servicii, setServicii] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showAddKit, setShowAddKit] = useState(false)
@@ -65,7 +66,7 @@ export default function Stocuri() {
   const [showAddMetro, setShowAddMetro] = useState(false)
   const [metroEch, setMetroEch] = useState(null)
   const [filtruTip, setFiltruTip] = useState('')
-  const [kitForm, setKitForm] = useState({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, obs: '' })
+  const [kitForm, setKitForm] = useState({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, serviciu_id: '', obs: '' })
   const [miscareForm, setMiscareForm] = useState({ tip: 'intrare', cant: 1, motiv: '', data: todayStr() })
   const [metroForm, setMetroForm] = useState({ echipament: ECHIPAMENTE_LIST[0].den, tip: 'etalonare', data_ef: todayStr(), data_sc: '', exec_tip: 'extern', exec_firma: '', cert: '', cost: '', obs: '' })
 
@@ -73,24 +74,103 @@ export default function Stocuri() {
 
   async function loadAll() {
     setLoading(true)
-    const [s, m, mt] = await Promise.all([
-      supabase.from('stoc_data').select('*').order('cod', { ascending: true }),
-      supabase.from('miscari').select('*').order('ts', { ascending: false }).limit(100),
+    const [itemsRes, balancesRes, movementsRes, mt, srv] = await Promise.all([
+      supabase.from('stock_items').select('*').order('ref', { ascending: true }),
+      supabase.from('stock_balances').select('*').eq('locatie', 'laborator'),
+      supabase.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(100),
       supabase.from('metro_data').select('*').order('data_sc', { ascending: true }),
+      supabase.from('servicii').select('*').eq('activ', true).order('cod', { ascending: true }),
     ])
-    setStoc(s.data || [])
-    setMiscari(m.data || [])
+
+    const items = itemsRes.data || []
+    const balances = balancesRes.data || []
+    const services = srv.data || []
+
+    const stocView = items.map(item => {
+      const bal = balances.find(b => b.stock_item_id === item.id)
+      const serv = services.find(s => s.id === item.serviciu_id)
+      return {
+        id: item.id,
+        cod: item.ref,
+        den: item.denumire,
+        tip: item.tip_reagent === 'control_intern' ? 'control' : item.tip_reagent,
+        producator: item.producator,
+        lot: item.lot || '',
+        expirare: item.expirare || '',
+        cantitate: bal?.cantitate_disponibila || 0,
+        stoc_min: item.stoc_minim || 0,
+        teste_per_kit: item.cantitate_teste || 0,
+        serviciu_id: item.serviciu_id || '',
+        serviciu_cod: serv?.cod || '',
+        serviciu_den: serv?.den || '',
+      }
+    })
+
+    const miscariView = (movementsRes.data || []).map(m => ({
+      id: m.id,
+      kit_id: m.stock_item_id,
+      kit_den: items.find(i => i.id === m.stock_item_id)?.denumire || '—',
+      kit_cod: items.find(i => i.id === m.stock_item_id)?.ref || '—',
+      tip: m.tip_miscare === 'intrare_central' || m.tip_miscare === 'transfer_lab' ? 'intrare' : 'iesire',
+      cant: Math.abs(m.cantitate || 0),
+      data: m.data_miscare,
+      motiv: m.motiv,
+      stoc_dupa: '',
+    }))
+
+    setStoc(stocView)
+    setMiscari(miscariView)
     setMetro(mt.data || [])
+    setServicii(services)
     setLoading(false)
   }
 
   async function saveKit() {
     if (!kitForm.cod || !kitForm.den) { alert('Cod și denumire obligatorii!'); return }
     setSaving(true)
-    const rec = { id: 'KIT-' + Date.now(), ...kitForm, cantitate: parseFloat(kitForm.cantitate)||0, teste_per_kit: parseInt(kitForm.teste_per_kit)||96, stoc_min: parseFloat(kitForm.stoc_min)||1, ts: new Date().toISOString() }
-    const { error } = await supabase.from('stoc_data').insert(rec)
-    if (!error) { setStoc(prev => [...prev, rec]); setShowAddKit(false); setKitForm({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, obs: '' }) }
-    else alert('Eroare: ' + error.message)
+
+    const itemRec = {
+      ref: kitForm.cod,
+      denumire: kitForm.den,
+      producator: kitForm.producator || null,
+      tip_reagent: kitForm.tip === 'control' ? 'control_intern' : (['amplificare','extractie'].includes(kitForm.tip) ? kitForm.tip : 'amplificare'),
+      serviciu_id: kitForm.serviciu_id || null,
+      cantitate_teste: parseInt(kitForm.teste_per_kit) || 96,
+      stoc_minim: parseFloat(kitForm.stoc_min) || 1,
+      activ: true,
+      lot: kitForm.lot || null,
+      expirare: kitForm.expirare || null,
+    }
+
+    const { data: inserted, error } = await supabase.from('stock_items').insert(itemRec).select().single()
+
+    if (!error && inserted) {
+      const startQty = parseFloat(kitForm.cantitate) || 0
+      await supabase.from('stock_balances').insert({
+        stock_item_id: inserted.id,
+        locatie: 'laborator',
+        cantitate_disponibila: startQty,
+      })
+
+      if (startQty > 0) {
+        await supabase.from('stock_movements').insert({
+          stock_item_id: inserted.id,
+          tip_miscare: 'corectie',
+          sursa: null,
+          destinatie: 'laborator',
+          cantitate: startQty,
+          data_miscare: todayStr(),
+          motiv: 'Stoc inițial',
+          utilizator: 'sistem'
+        })
+      }
+
+      await loadAll()
+      setShowAddKit(false)
+      setKitForm({ cod: '', den: '', tip: 'amplificare', producator: '', lot: '', expirare: '', cantitate: 1, teste_per_kit: 96, stoc_min: 1, serviciu_id: '', obs: '' })
+    } else {
+      alert('Eroare: ' + error.message)
+    }
     setSaving(false)
   }
 
@@ -100,12 +180,26 @@ export default function Stocuri() {
     setSaving(true)
     const kit = showMiscare
     const newCant = miscareForm.tip === 'intrare' ? kit.cantitate + cant : Math.max(0, kit.cantitate - cant)
-    const misRec = { id: 'MIS-' + Date.now(), kit_id: kit.id, kit_den: kit.den, kit_cod: kit.cod, tip: miscareForm.tip, cant, data: miscareForm.data, motiv: miscareForm.motiv, stoc_dupa: newCant, ts: new Date().toISOString() }
-    const { error } = await supabase.from('miscari').insert(misRec)
+
+    const { error } = await supabase
+      .from('stock_balances')
+      .update({ cantitate_disponibila: newCant, updated_at: new Date().toISOString() })
+      .eq('stock_item_id', kit.id)
+      .eq('locatie', 'laborator')
+
     if (!error) {
-      await supabase.from('stoc_data').update({ cantitate: newCant, ts: new Date().toISOString() }).eq('id', kit.id)
-      setStoc(prev => prev.map(s => s.id === kit.id ? { ...s, cantitate: newCant } : s))
-      setMiscari(prev => [misRec, ...prev])
+      const misRec = {
+        stock_item_id: kit.id,
+        tip_miscare: miscareForm.tip === 'intrare' ? 'corectie' : 'consum_lab',
+        sursa: miscareForm.tip === 'intrare' ? null : 'laborator',
+        destinatie: miscareForm.tip === 'intrare' ? 'laborator' : null,
+        cantitate: miscareForm.tip === 'intrare' ? cant : -cant,
+        data_miscare: miscareForm.data,
+        motiv: miscareForm.motiv,
+        utilizator: 'manual'
+      }
+      await supabase.from('stock_movements').insert(misRec)
+      await loadAll()
       setShowMiscare(null)
       if (newCant <= kit.stoc_min) alert(`⚠ Stoc minim atins pentru ${kit.den}!`)
     }
@@ -114,7 +208,7 @@ export default function Stocuri() {
 
   async function deleteKit(id) {
     if (!window.confirm('Ștergeți kitul din stoc?')) return
-    await supabase.from('stoc_data').delete().eq('id', id)
+    await supabase.from('stock_items').delete().eq('id', id)
     setStoc(prev => prev.filter(s => s.id !== id))
   }
 
@@ -262,6 +356,7 @@ export default function Stocuri() {
                         </div>
                       </div>
                       <div style={{fontSize:14,fontWeight:600,color:'#1e293b',marginBottom:4,lineHeight:1.3}}>{s.den}</div>
+                      {s.serviciu_cod && <div style={{fontSize:12,color:'#1a56db',marginBottom:6,fontWeight:600}}>{s.serviciu_cod} · {s.serviciu_den}</div>}
                       {s.producator && <div style={{fontSize:12,color:'#94a3b8',marginBottom:10}}>{s.producator} {s.lot && `· Lot: ${s.lot}`}</div>}
                       {s.expirare && <div style={{fontSize:12,color:expirat?'#dc2626':'#64748b',marginBottom:10}}>Expiră: {fmtDate(s.expirare)}</div>}
 
@@ -438,6 +533,13 @@ export default function Stocuri() {
                 <div><label className="form-label">Producător</label><input type="text" className="form-control" value={kitForm.producator} onChange={e=>setKitForm(p=>({...p,producator:e.target.value}))} placeholder="ex. AmpliSens" /></div>
               </div>
               <div><label className="form-label">Denumire *</label><input type="text" className="form-control" value={kitForm.den} onChange={e=>setKitForm(p=>({...p,den:e.target.value}))} placeholder="ex. AmpliSens Chlamydia trachomatis-FL" /></div>
+              <div>
+                <label className="form-label">Serviciu asociat</label>
+                <select className="form-control" value={kitForm.serviciu_id} onChange={e=>setKitForm(p=>({...p,serviciu_id:e.target.value}))}>
+                  <option value="">— selectați serviciul —</option>
+                  {servicii.map(s => <option key={s.id} value={s.id}>{s.cod} — {s.den}</option>)}
+                </select>
+              </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
                 <div><label className="form-label">Nr. lot</label><input type="text" className="form-control" value={kitForm.lot} onChange={e=>setKitForm(p=>({...p,lot:e.target.value}))} style={{fontFamily:'monospace'}} /></div>
                 <div><label className="form-label">Expirare</label><input type="date" className="form-control" value={kitForm.expirare} onChange={e=>setKitForm(p=>({...p,expirare:e.target.value}))} /></div>

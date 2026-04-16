@@ -111,7 +111,7 @@ export default function Calitate() {
   const [srvSearch, setSrvSearch] = useState('')
   const [srvFocused, setSrvFocused] = useState(false)
   const [serieForm, setSerieForm] = useState({ data: todayStr(), grupa: 'IST', echipament: ECHIPAMENTE[0], operator: PERSONAL[0], obs: '' })
-  const [srvForm, setSrvForm] = useState({ srv: null, probe: '', cpCt: '', cpTinta: '', cnCt: '' })
+  const [srvForm, setSrvForm] = useState({ srv: null, probe: '', cpCt: '', cpTinta: '', cnCt: '', cp_count: 0, calibratori_count: 0 })
 
   const [iqcGrupa, setIqcGrupa] = useState('IST')
   const [iqcSrv, setIqcSrv] = useState(null)
@@ -168,39 +168,277 @@ export default function Calitate() {
     const cnRez = evalCN(srvForm.cnCt)
     setSerieServicii(prev => [...prev, {
       srv_id: srvForm.srv.id, srv_cod: srvForm.srv.cod, srv_den: srvForm.srv.den,
-      nr_probe: parseInt(srvForm.probe),
+      nr_probe: parseInt(srvForm.probe) || 0,
+      cp_count: parseInt(srvForm.cp_count) || 0,
+      calibratori_count: parseInt(srvForm.calibratori_count) || 0,
       cp: { ct: srvForm.cpCt, tinta: srvForm.cpTinta, rezultat: cpRez || 'acceptat' },
       cn: { ct: srvForm.cnCt, rezultat: cnRez },
       iqc_rezultat: (cpRez === 'respins' || cnRez === 'respins') ? 'respins' : 'acceptat',
     }])
-    setSrvForm({ srv: null, probe: '', cpCt: '', cpTinta: '', cnCt: '' })
+    setSrvForm({ srv: null, probe: '', cpCt: '', cpTinta: '', cnCt: '', cp_count: 0, calibratori_count: 0 })
     setSrvSearch(''); setSrvFocused(false); setShowAddSrv(false)
   }
 
-  async function saveSerie() {
-    if (!serieServicii.length) { alert('Adăugați cel puțin un serviciu!'); return }
-    setSaving(true)
-    const totalProbe = serieServicii.reduce((s, x) => s + x.nr_probe, 0)
-    const allOk = serieServicii.every(s => s.iqc_rezultat === 'acceptat')
-    const serieRec = {
-      id: 'SER-' + Date.now(), data: serieForm.data, grupa: serieForm.grupa,
-      echipament: serieForm.echipament, nr_probe: totalProbe,
-      operator_nume: serieForm.operator, servicii: serieServicii,
-      iqc_global: allOk ? 'acceptat' : 'respins', obs: serieForm.obs, ts: new Date().toISOString(),
-    }
-    const iqcRecs = []
-    serieServicii.forEach(s => {
-      const base = { data: serieForm.data, grupa: serieForm.grupa, srv_cod: s.srv_cod, srv_den: s.srv_den, echipament: serieForm.echipament, operator_nume: serieForm.operator, ts: new Date().toISOString() }
-      if (s.cp.ct) iqcRecs.push({ ...base, id: 'IQC-CP-' + Date.now() + Math.random().toString(36).slice(2), tip: 'CP', ct: parseFloat(s.cp.ct), ct_tinta: parseFloat(s.cp.tinta), rezultat: s.cp.rezultat })
-      iqcRecs.push({ ...base, id: 'IQC-CN-' + Date.now() + Math.random().toString(36).slice(2), tip: 'CN', ct: s.cn.ct ? parseFloat(s.cn.ct) : null, rezultat: s.cn.rezultat })
-    })
-    const { error } = await supabase.from('serii_data').insert(serieRec)
-    if (!error && iqcRecs.length) await supabase.from('iqc_data').insert(iqcRecs)
-    if (error) alert('Eroare: ' + error.message)
-    else { setSerii(prev => [serieRec, ...prev]); setIqc(prev => [...iqcRecs, ...prev]); setShowAddSerie(false); setSerieServicii([]) }
-    setSaving(false)
+ async function saveSerie() {
+  if (!serieServicii.length) {
+    alert('Adăugați cel puțin un serviciu!')
+    return
   }
 
+  setSaving(true)
+
+  try {
+    const totalProbe = serieServicii.reduce((s, x) => s + (x.nr_probe || 0), 0)
+    const allOk = serieServicii.every(s => s.iqc_rezultat === 'acceptat')
+
+    const consumuri = serieServicii.map(s => ({
+      srv_id: s.srv_id,
+      srv_cod: s.srv_cod,
+      total: (s.nr_probe || 0) + (s.cp_count || 0) + 1 + (s.calibratori_count || 0)
+    }))
+
+    const srvIds = [...new Set(consumuri.map(c => c.srv_id))]
+
+    const { data: react, error: errReact } = await supabase
+      .from('stock_items')
+      .select('id, serviciu_id, tip_reagent, activ')
+      .in('serviciu_id', srvIds)
+      .eq('activ', true)
+
+    if (errReact) {
+      alert('Eroare la citirea reactivilor: ' + errReact.message)
+      setSaving(false)
+      return
+    }
+
+    const totalConsum = {}
+    const mapSrvToName = {}
+
+    consumuri.forEach(c => {
+      const reactiviSrv = (react || []).filter(x => x.serviciu_id === c.srv_id)
+      if (!reactiviSrv.length) {
+        mapSrvToName[c.srv_cod] = 'Serviciul nu are reactivi setați în stock_items.'
+        return
+      }
+
+      const add = (id, cant) => {
+        if (!id) return
+        if (!totalConsum[id]) totalConsum[id] = 0
+        totalConsum[id] += cant
+      }
+
+      reactiviSrv.forEach(r => add(r.id, c.total))
+    })
+
+    const missingLinks = Object.keys(mapSrvToName)
+    if (missingLinks.length) {
+      alert('Nu poți salva seria. Lipsesc reactivii pentru: ' + missingLinks.join(', '))
+      setSaving(false)
+      return
+    }
+
+    const itemIds = Object.keys(totalConsum)
+
+    if (itemIds.length) {
+      const { data: balances, error: balErr } = await supabase
+        .from('stock_balances')
+        .select('*')
+        .in('stock_item_id', itemIds)
+        .eq('locatie', 'laborator')
+
+      if (balErr) {
+        alert('Eroare la citirea stocului laborator: ' + balErr.message)
+        setSaving(false)
+        return
+      }
+
+      for (const id of itemIds) {
+        const bal = (balances || []).find(b => b.stock_item_id === id)
+        const stoc = Number(bal?.cantitate_disponibila || 0)
+        const necesar = Number(totalConsum[id] || 0)
+
+        if (stoc < necesar) {
+          alert(`Stoc insuficient în laborator!\nNecesar: ${necesar} teste\nDisponibil: ${stoc} teste`)
+          setSaving(false)
+          return
+        }
+      }
+
+      const serieId = 'SER-' + Date.now()
+
+      for (const id of itemIds) {
+        const bal = (balances || []).find(b => b.stock_item_id === id)
+        const current = Number(bal?.cantitate_disponibila || 0)
+        const necesar = Number(totalConsum[id] || 0)
+
+        const { error: updErr } = await supabase
+          .from('stock_balances')
+          .update({
+            cantitate_disponibila: current - necesar,
+            updated_at: new Date().toISOString()
+          })
+          .eq('stock_item_id', id)
+          .eq('locatie', 'laborator')
+
+        if (updErr) {
+          alert('Eroare la actualizarea stocului: ' + updErr.message)
+          setSaving(false)
+          return
+        }
+
+        const { error: movErr } = await supabase
+          .from('stock_movements')
+          .insert({
+            stock_item_id: id,
+            tip_miscare: 'consum_lab',
+            sursa: 'laborator',
+            destinatie: null,
+            cantitate: necesar,
+            serviciu_id: null,
+            serie_id: serieId,
+            data_miscare: serieForm.data,
+            motiv: `Consum automat la salvarea seriei ${serieForm.data}`,
+            utilizator: serieForm.operator
+          })
+
+        if (movErr) {
+          alert('Eroare la înregistrarea mișcării: ' + movErr.message)
+          setSaving(false)
+          return
+        }
+      }
+
+      const serieRec = {
+        id: serieId,
+        data: serieForm.data,
+        grupa: serieForm.grupa,
+        echipament: serieForm.echipament,
+        nr_probe: totalProbe,
+        operator_nume: serieForm.operator,
+        servicii: serieServicii,
+        iqc_global: allOk ? 'acceptat' : 'respins',
+        obs: serieForm.obs,
+        ts: new Date().toISOString()
+      }
+
+      const iqcRecs = []
+      serieServicii.forEach(s => {
+        const base = {
+          data: serieForm.data,
+          grupa: serieForm.grupa,
+          srv_cod: s.srv_cod,
+          srv_den: s.srv_den,
+          echipament: serieForm.echipament,
+          operator_nume: serieForm.operator,
+          ts: new Date().toISOString()
+        }
+
+        if (s.cp?.ct) {
+          iqcRecs.push({
+            ...base,
+            id: 'IQC-CP-' + Date.now() + Math.random().toString(36).slice(2),
+            tip: 'CP',
+            ct: parseFloat(s.cp.ct),
+            ct_tinta: parseFloat(s.cp.tinta),
+            rezultat: s.cp.rezultat
+          })
+        }
+
+        iqcRecs.push({
+          ...base,
+          id: 'IQC-CN-' + Date.now() + Math.random().toString(36).slice(2),
+          tip: 'CN',
+          ct: s.cn?.ct ? parseFloat(s.cn.ct) : null,
+          rezultat: s.cn?.rezultat
+        })
+      })
+
+      const { error } = await supabase.from('serii_data').insert(serieRec)
+
+      if (!error && iqcRecs.length) {
+        await supabase.from('iqc_data').insert(iqcRecs)
+      }
+
+      if (error) {
+        alert('Eroare: ' + error.message)
+      } else {
+        alert('Serie salvată + stoc actualizat')
+        setSerii(prev => [serieRec, ...prev])
+        setIqc(prev => [...iqcRecs, ...prev])
+        setShowAddSerie(false)
+        setSerieServicii([])
+      }
+      setSaving(false)
+      return
+    }
+
+    const serieRec = {
+      id: 'SER-' + Date.now(),
+      data: serieForm.data,
+      grupa: serieForm.grupa,
+      echipament: serieForm.echipament,
+      nr_probe: totalProbe,
+      operator_nume: serieForm.operator,
+      servicii: serieServicii,
+      iqc_global: allOk ? 'acceptat' : 'respins',
+      obs: serieForm.obs,
+      ts: new Date().toISOString()
+    }
+
+    const iqcRecs = []
+    serieServicii.forEach(s => {
+      const base = {
+        data: serieForm.data,
+        grupa: serieForm.grupa,
+        srv_cod: s.srv_cod,
+        srv_den: s.srv_den,
+        echipament: serieForm.echipament,
+        operator_nume: serieForm.operator,
+        ts: new Date().toISOString()
+      }
+
+      if (s.cp?.ct) {
+        iqcRecs.push({
+          ...base,
+          id: 'IQC-CP-' + Date.now() + Math.random().toString(36).slice(2),
+          tip: 'CP',
+          ct: parseFloat(s.cp.ct),
+          ct_tinta: parseFloat(s.cp.tinta),
+          rezultat: s.cp.rezultat
+        })
+      }
+
+      iqcRecs.push({
+        ...base,
+        id: 'IQC-CN-' + Date.now() + Math.random().toString(36).slice(2),
+        tip: 'CN',
+        ct: s.cn?.ct ? parseFloat(s.cn.ct) : null,
+        rezultat: s.cn?.rezultat
+      })
+    })
+
+    const { error } = await supabase.from('serii_data').insert(serieRec)
+
+    if (!error && iqcRecs.length) {
+      await supabase.from('iqc_data').insert(iqcRecs)
+    }
+
+    if (error) {
+      alert('Eroare: ' + error.message)
+    } else {
+      alert('Serie salvată')
+      setSerii(prev => [serieRec, ...prev])
+      setIqc(prev => [...iqcRecs, ...prev])
+      setShowAddSerie(false)
+      setSerieServicii([])
+    }
+  } catch (e) {
+    console.error(e)
+    alert('Eroare sistem')
+  }
+
+  setSaving(false)
+}
   async function saveEQAProg() {
     if (!progForm.denumire) { alert('Introduceți denumirea!'); return }
     setSaving(true)
@@ -283,7 +521,7 @@ export default function Calitate() {
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
               <div style={{fontSize:14,fontWeight:600,color:'#1e293b'}}>{serii.length} serii înregistrate</div>
               <button className="btn btn-primary" style={{fontSize:14,padding:'10px 20px'}}
-                onClick={() => { setShowAddSerie(true); setSerieServicii([]) }}>
+                onClick={() => { setShowAddSerie(true); setSerieServicii([]); setSerieForm({ data: todayStr(), grupa: 'IST', echipament: ECHIPAMENTE[0], operator: PERSONAL[0], obs: '' }) }}>
                 + Serie zilnică nouă
               </button>
             </div>
@@ -606,7 +844,7 @@ export default function Calitate() {
               <div>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
                   <div style={{fontSize:13,fontWeight:600,color:'#1e293b'}}>Servicii ({serieServicii.length})</div>
-                  <button type="button" onClick={()=>{setShowAddSrv(true);setSrvSearch('');setSrvForm({srv:null,probe:'',cpCt:'',cpTinta:'',cnCt:''})}}
+                  <button type="button" onClick={()=>{setShowAddSrv(true);setSrvSearch('');setSrvForm({srv:null,probe:'',cpCt:'',cpTinta:'',cnCt:'',cp_count:0,calibratori_count:0})}}
                     style={{background:'#eff6ff',color:'#1e40af',border:'1px solid #bfdbfe',padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer'}}>
                     + Adaugă serviciu
                   </button>
@@ -622,8 +860,10 @@ export default function Calitate() {
                         <span style={{fontFamily:'monospace',fontWeight:700,color:'#1a56db',minWidth:70,fontSize:13}}>{s.srv_cod}</span>
                         <span style={{fontSize:12,color:'#64748b',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.srv_den}</span>
                         <span style={{fontSize:12,color:'#94a3b8'}}>{s.nr_probe}p</span>
-                        <span style={{fontSize:12,color:'#94a3b8'}}>CP:{s.cp.ct||'—'}</span>
+                        <span style={{fontSize:12,color:'#94a3b8'}}>CP Ct:{s.cp.ct||'—'}</span>
+                        <span style={{fontSize:12,color:'#94a3b8'}}>CP nr:{s.cp_count||0}</span>
                         <span style={{fontSize:12,color:'#94a3b8'}}>CN:{s.cn.ct||'—'}</span>
+                        <span style={{fontSize:12,color:'#94a3b8'}}>Cal:{s.calibratori_count||0}</span>
                         <span style={{fontWeight:700,fontSize:14,color:s.iqc_rezultat==='acceptat'?'#16a34a':'#dc2626'}}>{s.iqc_rezultat==='acceptat'?'✓':'✗'}</span>
                         <button type="button" onClick={()=>setSerieServicii(prev=>prev.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#e2e8f0',cursor:'pointer',fontSize:16}}>✕</button>
                       </div>
@@ -676,6 +916,10 @@ export default function Calitate() {
                 )}
               </div>
               <div><label className="form-label">Nr. probe pacienți</label><input type="number" min="1" className="form-control" value={srvForm.probe} onChange={e=>setSrvForm(p=>({...p,probe:e.target.value}))} /></div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div><label className="form-label">Număr CP</label><input type="number" min="0" className="form-control" value={srvForm.cp_count} onChange={e=>setSrvForm(p=>({...p,cp_count:parseInt(e.target.value)||0}))} /></div>
+                <div><label className="form-label">Număr calibratori</label><input type="number" min="0" className="form-control" value={srvForm.calibratori_count} onChange={e=>setSrvForm(p=>({...p,calibratori_count:parseInt(e.target.value)||0}))} /></div>
+              </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div><label className="form-label">CP — Ct obținut</label><input type="number" step="0.01" className="form-control" value={srvForm.cpCt} onChange={e=>setSrvForm(p=>({...p,cpCt:e.target.value}))} placeholder="ex. 28.45" style={{fontFamily:'monospace'}} /></div>
                 <div><label className="form-label">CP — Ct țintă</label><input type="number" step="0.01" className="form-control" value={srvForm.cpTinta} onChange={e=>setSrvForm(p=>({...p,cpTinta:e.target.value}))} placeholder="ex. 28.00" style={{fontFamily:'monospace'}} /></div>
